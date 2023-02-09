@@ -1,0 +1,11 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    font-family: Verdana, sans-serif;
+    font-weight: normal;
+}
+
+.suitStackContainer .Red {
+    color: rgba(255, 0, 0, 1)
+}

@@ -48,24 +48,24 @@ class Card {
   number: number;
   color: number;
   display: string;
-  isRevealed: boolean;
+  isRevealed: boolean = false;
   
   constructor(position: number) {
     this.position = position;
     this.suit = Math.floor(this.position / 13);
     this.number = this.position % 13;
+    this.display = this.displayCard();
+    this.isRevealed = false;
     if (this.suit == 0 || this.suit == 1) {
       this.color = 0;
     } else {
       this.color = 1;
     } // 0 = red, 1 = black
-    this.display = this.displayCard();
-    this.isRevealed = false;
   }
 
   displayCard() {
     var number = this.number;
-    if (Object.keys(CARDS).includes(this.number.toString())) {
+    if (this.number.toString() in Object.keys(CARDS)) {
       number = CARDS[number];
     } else {
       number = number + 1;
@@ -86,143 +86,155 @@ class Stack {
     this.stackType = button.getAttribute("stack-type")!;
     this.cards = [];
   }
-}
 
-// deal directly too the Stack objects
-function dealCards(allStacks: Array<Array<Stack>>): void{
-  for (let i = 0; i < 7; i++) {
-    for (let j = 0; j < i + 1; j++) {
-      let card: Card = allStacks[0][0].cards.shift()!
-      allStacks[2][i].cards.push(card);
-    }
+  displayStack(): string{
+    var display = "";
+    this.cards.forEach((card) => {
+      if (card.isRevealed) {
+        display = `${display} ${card.display}`;
+      } else {
+        display = display + " [---]";
+      }
+    });
+    return display;
   }
-  allStacks[2].forEach((stack) => {
-    stack.cards[stack.cards.length - 1].isRevealed = true;
-  });
 }
 
-function displayStack(stack: Card[]): string{
-  var display = "";
-  stack.forEach((card) => {
-    if (card.isRevealed) {
-      display = `${display} ${card.display}`;
-    } else {
-      display = display + " [---]";
-    }
-  });
-  return display;
-}
+class Display {
+  updateDisplay(stacks: Array<Array<Stack>>): void {
+    
+    stacks[2].forEach((stack) => {
+      stack.textElement.innerText = stack.displayStack();
 
-function updateDisplay() {
-  for (var i = 0; i < 7; i++) {
-    var stack = stacks[2][i].cards;
-    mainStackTextElements[i].innerText = displayStack(stack);
-  }
-  for (var i = 0; i < 4; i++) {
-    let topCard: string = stacks[1][i].cards[0].display;
+    })
+    stacks[1].forEach((stack) => {
+      let topCard: string = stack.cards[0].display;
+      if (topCard != undefined) {
+        stack.textElement.innerText = topCard;
+      } else {
+        stack.textElement.innerText = "[---]";
+      };
+    });
+    let stack: Stack = stacks[0][0];
+    let topCard: string = stack.cards[0].display;
     if (topCard != undefined) {
-      suitStackTextElements[i].innerText = `${topCard}`;
+      stack.textElement.innerText = topCard
     } else {
-      suitStackTextElements[i].innerText = "[---]";
+      stack.textElement.innerText = "[---]";
     }
   }
-  let topCard: string = stacks[0][0].cards[0].display;
-  if (topCard != undefined) {
-    deckTextElement.innerText = topCard
-  } else {
-    deckTextElement.innerText = "[---]";
+  dealCards(): void{
+    for (let i = 0; i < 7; i++) {
+      for (let j = 0; j < i + 1; j++) {
+        let card: Card = stacks[0][0].cards.shift()!
+        stacks[2][i].cards.push(card);
+      }
+    }
+    stacks[2].forEach((stack) => {
+      stack.cards[stack.cards.length - 1].isRevealed = true;
+    });
   }
 }
 // DISPLAY
 
 // GAMEPLAY
-function selectStack(stack: Stack) {
-  if (selectedStack == undefined) {
-    var selectedStack: Stack | undefined = stack;
-    return;
-  }
-  if (selectedStack.stackType == "0") {
-    if (stack.stackType == "0") {
-      stack.cards.push(stack.cards.shift()!); // Remove ! and fix for when draw stack is empty
-    } else {
-      console.warn("Cannot Move Card to Deck!");
+class Gameplay{
+  selectStack(stack: Stack) {
+    if (selectedStack == undefined) {
+      var selectedStack: Stack | undefined = stack;
+      return;
     }
-  } else {
-    if (isValid(selectedStack, stack)) {
-      var card: Card | undefined = stack.cards.shift();
-      if (card !== undefined) {
-        selectedStack.cards.unshift(card);
-        stack.cards[0].isRevealed = true;
+    if (selectedStack.stackType == "0") {
+      if (stack.stackType == "0") {
+        stack.cards.push(stack.cards.shift()!); // Remove ! and fix for when draw stack is empty
+      } else {
+        console.warn("Cannot Move Card to Deck!");
       }
     } else {
-      console.warn("Invalid Move");
+      if (this.isValid(selectedStack, stack)) {
+        var card: Card | undefined = stack.cards.shift();
+        if (card !== undefined) {
+          selectedStack.cards.unshift(card);
+          stack.cards[0].isRevealed = true;
+        }
+      } else {
+        console.warn("Invalid Move");
+      }
+    }
+    selectedStack = undefined;
+    display.updateDisplay(stacks);
+  }
+  
+  isValid(stackFrom: Stack, stackTo: Stack) {
+    let card = stackFrom.cards[0];
+    console.log(`cards: ${card}`);
+    let cardOn = stackTo.cards[0];
+    console.log(`cardsOn: ${cardOn}`);
+    if (stackTo.stackType == "1") {
+      return card.suit == cardOn.suit && card.number == cardOn.number + 1;
+    } else if (stackTo.stackType == "2") {
+      return card.color != cardOn.color && card.number == cardOn.number - 1;
     }
   }
-  selectedStack = undefined;
-  updateDisplay();
-}
-
-function isValid(stackFrom: Stack, stackTo: Stack) {
-  let card = stackFrom.cards[0];
-  console.log(`cards: ${card}`);
-  let cardOn = stackTo.cards[0];
-  console.log(`cardsOn: ${cardOn}`);
-  if (stackTo.stackType == "1") {
-    return card.suit == cardOn.suit && card.number == cardOn.number + 1;
-  } else if (stackTo.stackType == "2") {
-    return card.color != cardOn.color && card.number == cardOn.number - 1;
-  }
-}
-
-function reset() {
-  stacks.forEach((stackSet) => {
-    stackSet.forEach((stack) => {
-      stack.cards = [];
+  
+  reset() {
+    stacks.forEach((stackSet) => {
+      stackSet.forEach((stack) => {
+        stack.cards = [];
+      });
     });
-  });
-  for (var i = 0; i < 52; i++) {
-    stacks[0][0].cards.push(new Card(i));
+    for (var i = 0; i < 52; i++) {
+      stacks[0][0].cards.push(new Card(i));
+    }
+    stacks[0][0].cards.sort((a) => 0.5 - Math.random());
+    display.dealCards();
+   
+    stacks.forEach((stackSet) => {
+      stackSet.forEach((stack) => {
+        stack.textElement.innerText = "";
+      });
+    });
+    //var selectedStack = null;  //Says this is useless, check!
   }
-  stacks[0][0].cards.sort((a) => 0.5 - Math.random());
-  dealCards(stacks);
-  suitStackTextElements.forEach((stack) => {
-    stack.innerText = "";
-  });
-  mainStackTextElements.forEach((stack) => {
-    stack.innerText = "";
-  });
-  deckTextElement.innerText = "";
-  var selectedStack = null;
 }
 // GAMEPLAY
 
 // Stacks
-var stacks: Array<Array<Stack>> = [[new Stack(deckButton, deckTextElement)], [], []];
+var deckStack: Stack = new Stack(deckButton, deckTextElement)
+var mainStacks: Stack[] = []
+var suitStacks: Stack[] = []
 
 for (var i = 0; i < mainStackButtons.length; i++) {
   var button = mainStackButtons[i];
   var textElement = mainStackTextElements[i];
-  stacks[2].push(new Stack(button, textElement));
+  mainStacks.push(new Stack(button, textElement));
 }
+
 
 for (var i = 0; i < suitStackButtons.length; i++) {
   var button = suitStackButtons[i];
   var textElement = suitStackTextElements[i];
-  stacks[1].push(new Stack(button, textElement));
+  suitStacks.push(new Stack(button, textElement));
 }
+
+var stacks: Array<Array<Stack>> = [[deckStack], suitStacks, mainStacks];
 
 stacks.forEach((stackSet) => {
   stackSet.forEach((stack) => {
     stack.button.addEventListener("click", () => {
-      selectStack(stack);
+      gameplay.selectStack(stack);
     });
   });
 });
 
-newGameButton.addEventListener("click", () => {
-  reset();
-  updateDisplay();
+newGameButton!.addEventListener("click", () => {
+  gameplay.reset();
+  display.updateDisplay(stacks);
 });
 // Stacks
 
-reset(); // Defines Variables
+// Variables
+const gameplay = new Gameplay();
+const display = new Display();
+gameplay.reset(); 
+// Variables
