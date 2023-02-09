@@ -51,14 +51,13 @@ var Card = /** @class */ (function () {
         } // 0 = red, 1 = black
     }
     Card.prototype.displayCard = function () {
-        var number = this.number;
-        if (this.number in Object.keys(CARDS)) {
-            number = CARDS[number];
+        if (CARDS[this.number] != undefined) {
+            console.log("number ".concat(this.number, "\nCard ").concat(CARDS[this.number]));
+            return "".concat(CARDS[this.number], "-").concat(SUITS[this.suit]);
         }
         else {
-            number = number + 1;
+            return "".concat(this.number + 1, "-").concat(SUITS[this.suit]);
         }
-        return "".concat(number, "-").concat(SUITS[this.suit]);
     };
     return Card;
 }());

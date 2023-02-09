@@ -67,13 +67,12 @@ class Card {
   }
 
   displayCard() {
-    var number: number | string = this.number;
-    if (this.number in Object.keys(CARDS)) {
-      number = CARDS[number];
+    if (CARDS[this.number] != undefined) {
+      console.log(`number ${this.number}\nCard ${CARDS[this.number]}`);
+      return `${CARDS[this.number]}-${SUITS[this.suit]}`;
     } else {
-      number = number + 1;
+      return `${this.number + 1}-${SUITS[this.suit]}`;
     }
-    return `${number}-${SUITS[this.suit]}`;
   }
 }
 
