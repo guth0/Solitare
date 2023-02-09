@@ -31,9 +31,9 @@ var deckTextElement = document.querySelector("[data-deck-display]");
 var SUITS = ["H", "D", "S", "C"];
 var CARDS = {
     0: "A",
-    11: "J",
-    12: "Q",
-    13: "K"
+    10: "J",
+    11: "Q",
+    12: "K"
 };
 var Card = /** @class */ (function () {
     function Card(position) {
@@ -52,7 +52,7 @@ var Card = /** @class */ (function () {
     }
     Card.prototype.displayCard = function () {
         var number = this.number;
-        if (this.number.toString() in Object.keys(CARDS)) {
+        if (this.number in Object.keys(CARDS)) {
             number = CARDS[number];
         }
         else {
@@ -83,140 +83,133 @@ var Stack = /** @class */ (function () {
     };
     return Stack;
 }());
-var Display = /** @class */ (function () {
-    function Display() {
-    }
-    Display.prototype.updateDisplay = function (stacks) {
-        stacks[2].forEach(function (stack) {
-            stack.textElement.innerText = stack.displayStack();
-        });
-        stacks[1].forEach(function (stack) {
-            var topCard = stack.cards[0].display;
-            if (topCard != undefined) {
-                stack.textElement.innerText = topCard;
-            }
-            else {
-                stack.textElement.innerText = "[---]";
-            }
-            ;
-        });
-        var stack = stacks[0][0];
-        var topCard = stack.cards[0].display;
+function updateDisplay(stacks) {
+    stacks[2].forEach(function (stack) {
+        stack.textElement.innerText = stack.displayStack();
+    });
+    stacks[1].forEach(function (stack) {
+        var topCard = stack.cards[0];
         if (topCard != undefined) {
-            stack.textElement.innerText = topCard;
+            stack.textElement.innerText = topCard.display;
         }
         else {
             stack.textElement.innerText = "[---]";
         }
-    };
-    Display.prototype.dealCards = function () {
-        for (var i_1 = 0; i_1 < 7; i_1++) {
-            for (var j = 0; j < i_1 + 1; j++) {
-                var card = stacks[0][0].cards.shift();
-                stacks[2][i_1].cards.push(card);
-            }
+    });
+    var stack = stacks[0][0];
+    var topCard = stack.cards[0];
+    if (topCard != undefined) {
+        stack.textElement.innerText = topCard.display;
+    }
+    else {
+        stack.textElement.innerText = "[---]";
+    }
+}
+function dealCards() {
+    for (var i = 0; i < 7; i++) {
+        for (var j = 0; j < i + 1; j++) {
+            var card = stacks[0][0].cards.shift();
+            stacks[2][i].cards.push(card);
         }
-        stacks[2].forEach(function (stack) {
-            stack.cards[stack.cards.length - 1].isRevealed = true;
-        });
-    };
-    return Display;
-}());
+    }
+    stacks[2].forEach(function (stack) {
+        stack.cards[stack.cards.length - 1].isRevealed = true;
+    });
+}
 // DISPLAY
 // GAMEPLAY
-var Gameplay = /** @class */ (function () {
-    function Gameplay() {
+function selectStack(stack) {
+    if (selectedStack == undefined) {
+        var selectedStack = stack;
+        return;
     }
-    Gameplay.prototype.selectStack = function (stack) {
-        if (selectedStack == undefined) {
-            var selectedStack = stack;
-            return;
+    if (selectedStack.stackType == "0") {
+        if (stack.stackType == "0") {
+            stack.cards.push(stack.cards.shift()); // Remove ! and fix for when draw stack is empty
         }
-        if (selectedStack.stackType == "0") {
-            if (stack.stackType == "0") {
-                stack.cards.push(stack.cards.shift()); // Remove ! and fix for when draw stack is empty
-            }
-            else {
-                console.warn("Cannot Move Card to Deck!");
+        else {
+            console.warn("Cannot Move Card to Deck!");
+        }
+    }
+    else {
+        if (isValid(selectedStack, stack)) {
+            var card = stack.cards.shift();
+            if (card !== undefined) {
+                selectedStack.cards.unshift(card);
+                stack.cards[0].isRevealed = true;
             }
         }
         else {
-            if (this.isValid(selectedStack, stack)) {
-                var card = stack.cards.shift();
-                if (card !== undefined) {
-                    selectedStack.cards.unshift(card);
-                    stack.cards[0].isRevealed = true;
-                }
-            }
-            else {
-                console.warn("Invalid Move");
-            }
+            console.warn("Invalid Move");
         }
-        selectedStack = undefined;
-        display.updateDisplay(stacks);
-    };
-    Gameplay.prototype.isValid = function (stackFrom, stackTo) {
-        var card = stackFrom.cards[0];
-        console.log("cards: ".concat(card));
-        var cardOn = stackTo.cards[0];
-        console.log("cardsOn: ".concat(cardOn));
-        if (stackTo.stackType == "1") {
-            return card.suit == cardOn.suit && card.number == cardOn.number + 1;
-        }
-        else if (stackTo.stackType == "2") {
-            return card.color != cardOn.color && card.number == cardOn.number - 1;
-        }
-    };
-    Gameplay.prototype.reset = function () {
-        stacks.forEach(function (stackSet) {
-            stackSet.forEach(function (stack) {
-                stack.cards = [];
-            });
-        });
-        for (var i = 0; i < 52; i++) {
-            stacks[0][0].cards.push(new Card(i));
-        }
-        stacks[0][0].cards.sort(function (a) { return 0.5 - Math.random(); });
-        display.dealCards();
-        stacks.forEach(function (stackSet) {
-            stackSet.forEach(function (stack) {
-                stack.textElement.innerText = "";
-            });
-        });
-        //var selectedStack = null;  //Says this is useless, check!
-    };
-    return Gameplay;
-}());
-// GAMEPLAY
-// Stacks
-var deckStack = new Stack(deckButton, deckTextElement);
-var mainStacks = [];
-var suitStacks = [];
-for (var i = 0; i < mainStackButtons.length; i++) {
-    var button = mainStackButtons[i];
-    var textElement = mainStackTextElements[i];
-    mainStacks.push(new Stack(button, textElement));
+    }
+    selectedStack = undefined;
+    updateDisplay(stacks);
 }
-for (var i = 0; i < suitStackButtons.length; i++) {
-    var button = suitStackButtons[i];
-    var textElement = suitStackTextElements[i];
-    suitStacks.push(new Stack(button, textElement));
+function isValid(stackFrom, stackTo) {
+    var card = stackFrom.cards[0];
+    console.log("cards: ".concat(card));
+    var cardOn = stackTo.cards[0];
+    console.log("cardsOn: ".concat(cardOn));
+    if (stackTo.stackType == "1") {
+        return card.suit == cardOn.suit && card.number == cardOn.number + 1;
+    }
+    else if (stackTo.stackType == "2") {
+        return card.color != cardOn.color && card.number == cardOn.number - 1;
+    }
 }
-var stacks = [[deckStack], suitStacks, mainStacks];
-stacks.forEach(function (stackSet) {
-    stackSet.forEach(function (stack) {
-        stack.button.addEventListener("click", function () {
-            gameplay.selectStack(stack);
+function reset() {
+    stacks.forEach(function (stackSet) {
+        stackSet.forEach(function (stack) {
+            stack.cards = [];
         });
     });
-});
-newGameButton.addEventListener("click", function () {
-    gameplay.reset();
-    display.updateDisplay(stacks);
-});
+    for (var i = 0; i < 52; i++) {
+        stacks[0][0].cards.push(new Card(i));
+    }
+    stacks[0][0].cards.sort(function (a) { return 0.5 - Math.random(); });
+    dealCards();
+    stacks.forEach(function (stackSet) {
+        stackSet.forEach(function (stack) {
+            stack.textElement.innerText = "";
+        });
+    });
+    //var selectedStack = null;  //Says this is useless, check!
+}
+// GAMEPLAY
+// Stacks
+function defineStacks() {
+    var deckStack = new Stack(deckButton, deckTextElement);
+    var mainStacks = [];
+    var suitStacks = [];
+    for (var i = 0; i < mainStackButtons.length; i++) {
+        var button = mainStackButtons[i];
+        var textElement = mainStackTextElements[i];
+        mainStacks.push(new Stack(button, textElement));
+    }
+    for (var i = 0; i < suitStackButtons.length; i++) {
+        var button_1 = suitStackButtons[i];
+        var textElement = suitStackTextElements[i];
+        suitStacks.push(new Stack(button_1, textElement));
+    }
+    return [[deckStack], suitStacks, mainStacks];
+}
+function setButtons() {
+    stacks.forEach(function (stackSet) {
+        stackSet.forEach(function (stack) {
+            stack.button.addEventListener("click", function () {
+                selectStack(stack);
+            });
+        });
+    });
+    newGameButton.addEventListener("click", function () {
+        reset();
+        updateDisplay(stacks);
+    });
+}
 // Stacks
 // Variables
-var gameplay = new Gameplay();
-var display = new Display();
-gameplay.reset();
+var stacks = defineStacks();
+setButtons();
+reset();
 // Variables
