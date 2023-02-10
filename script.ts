@@ -95,13 +95,13 @@ class Stack {
   }
 
   displayStack(): string {
-    let display = "";
-    for (var i = this.cards.length - 1; i < -1; i--) {
+    let display: string = "";
+    for (var i = this.cards.length - 1; i > -1; i--) {
       let card = this.cards[i];
       if (card.isRevealed) {
         display = `${display} ${card.display}`;
       } else {
-        display = display + " [---]";
+        display = `${display} [---]`;
       }
     }
     return display;
@@ -158,17 +158,22 @@ function selectStack(stack: Stack): void {
     }
   } else {
     console.log("CHECKING VALIDITY");
+
     if (isValid(selectedStack, stack)) {
       var card: Card | undefined = selectedStack.cards.shift();
-      if (card !== undefined) {
+      if (card != undefined) {
+        card.isRevealed = true;
         stack.cards.unshift(card);
-        selectedStack.cards[0].isRevealed = true;
+        let toReveal = selectedStack.cards[0];
+        if (toReveal != undefined) {
+          toReveal.isRevealed = true;
+        }
         stack.currentNumber++;
       } else {
-        console.warn("Invalid Move");
+        console.warn("Invalid Move (1)");
       }
     } else {
-      console.warn("Invalid Move");
+      console.warn("Invalid Move (2)");
     }
   }
   console.log("BEING UNDEFINED");
@@ -180,6 +185,7 @@ function isValid(stackFrom: Stack, stackTo: Stack): boolean {
   let card = stackFrom.cards[0];
   console.log(`card: ${card.display}`);
   if (stackTo.stackType == "2") {
+    if (stackTo.cards.length == 0) return true;
     let cardOn = stackTo.cards[0];
     console.log(`cardOn: ${cardOn.display}`);
 
@@ -192,9 +198,13 @@ function isValid(stackFrom: Stack, stackTo: Stack): boolean {
         card.number == cardOn.number - 1
       }`
     );
+    console.log(
+      `RETURNING: ${
+        card.color != cardOn.color && card.number == cardOn.number - 1
+      }`
+    );
     ///////
-
-    return card.color != cardOn.color && card.number == cardOn.number;
+    return card.color != cardOn.color && card.number == cardOn.number - 1;
   } else if (stackTo.stackType == "1") {
     ////////////////////////////////
     console.log(
@@ -205,18 +215,18 @@ function isValid(stackFrom: Stack, stackTo: Stack): boolean {
         card.number == stackTo.currentNumber
       }`
     );
+    console.log(
+      `RETURNING: ${
+        card.suit == stackTo.suit && card.number == stackTo.currentNumber
+      }`
+    );
     ////////////////
 
     return card.suit == stackTo.suit && card.number == stackTo.currentNumber;
   } else return false;
 }
 
-// card: 5-D (from deck)
-// cardOn: 6-C (to main stack 7)
-// 0 != 1: true
-// 4 == 4: true
-// Invalid Move @line 170
-// BEING UNDEFINED
+function moveCard(card: Card, stackTo: Stack) {}
 
 function reset() {
   stacks.forEach((stackSet) => {

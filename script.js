@@ -71,13 +71,13 @@ var Stack = /** @class */ (function () {
     }
     Stack.prototype.displayStack = function () {
         var display = "";
-        for (var i = this.cards.length - 1; i < -1; i--) {
+        for (var i = this.cards.length - 1; i > -1; i--) {
             var card = this.cards[i];
             if (card.isRevealed) {
                 display = "".concat(display, " ").concat(card.display);
             }
             else {
-                display = display + " [---]";
+                display = "".concat(display, " [---]");
             }
         }
         return display;
@@ -138,17 +138,21 @@ function selectStack(stack) {
         console.log("CHECKING VALIDITY");
         if (isValid(selectedStack, stack)) {
             var card = selectedStack.cards.shift();
-            if (card !== undefined) {
+            if (card != undefined) {
+                card.isRevealed = true;
                 stack.cards.unshift(card);
-                selectedStack.cards[0].isRevealed = true;
+                var toReveal = selectedStack.cards[0];
+                if (toReveal != undefined) {
+                    toReveal.isRevealed = true;
+                }
                 stack.currentNumber++;
             }
             else {
-                console.warn("Invalid Move");
+                console.warn("Invalid Move (1)");
             }
         }
         else {
-            console.warn("Invalid Move");
+            console.warn("Invalid Move (2)");
         }
     }
     console.log("BEING UNDEFINED");
@@ -159,30 +163,29 @@ function isValid(stackFrom, stackTo) {
     var card = stackFrom.cards[0];
     console.log("card: ".concat(card.display));
     if (stackTo.stackType == "2") {
+        if (stackTo.cards.length == 0)
+            return true;
         var cardOn = stackTo.cards[0];
         console.log("cardOn: ".concat(cardOn.display));
         ///////
         console.log("".concat(card.color, " != ").concat(cardOn.color, ": ").concat(card.color != cardOn.color));
         console.log("".concat(card.number, " == ").concat(cardOn.number - 1, ": ").concat(card.number == cardOn.number - 1));
+        console.log("RETURNING: ".concat(card.color != cardOn.color && card.number == cardOn.number - 1));
         ///////
-        return card.color != cardOn.color && card.number == cardOn.number;
+        return card.color != cardOn.color && card.number == cardOn.number - 1;
     }
     else if (stackTo.stackType == "1") {
         ////////////////////////////////
         console.log("".concat(card.suit, " == ").concat(stackTo.suit, ": ").concat(card.suit == stackTo.suit));
         console.log("".concat(card.number, " == ").concat(stackTo.currentNumber, ": ").concat(card.number == stackTo.currentNumber));
+        console.log("RETURNING: ".concat(card.suit == stackTo.suit && card.number == stackTo.currentNumber));
         ////////////////
         return card.suit == stackTo.suit && card.number == stackTo.currentNumber;
     }
     else
         return false;
 }
-// card: 5-D (from deck)
-// cardOn: 6-C (to main stack 7)
-// 0 != 1: true
-// 4 == 4: true
-// Invalid Move @line 170
-// BEING UNDEFINED
+function moveCard(card, stackTo) { }
 function reset() {
     stacks.forEach(function (stackSet) {
         stackSet.forEach(function (stack) {
