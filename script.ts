@@ -19,21 +19,25 @@
 //   Timer (Update after every move until create UI)
 //   Move count
 
+// TODO:
+//   FIX:
+//     updateDisplay()
+//     selectStack()
+//     isValid()
+//     reset()
+//   IMPLIMENT:
+//     moveCard()
+//   REMOVE:
+//     change ".currentNumber" to ".cards.length"
+
 // HTML elements
 const newGameButton: HTMLButtonElement =
   document.querySelector("[data-new-game]")!;
-const mainStackButtons: NodeListOf<HTMLButtonElement> =
+const mainStacks: NodeListOf<HTMLElement> =
   document.querySelectorAll("[data-main-stack]")!;
-const suitStackButtons: NodeListOf<HTMLButtonElement> =
+const suitStacks: NodeListOf<HTMLElement> =
   document.querySelectorAll("[data-suit-stack]")!;
-const deckButton: HTMLButtonElement = document.querySelector("[data-deck]")!;
-const mainStackTextElements: NodeListOf<HTMLTextAreaElement> =
-  document.querySelectorAll("[data-main-stack-display]")!;
-const suitStackTextElements: NodeListOf<HTMLTextAreaElement> =
-  document.querySelectorAll("[data-suit-stack-display]")!;
-const deckTextElement: HTMLTextAreaElement = document.querySelector(
-  "[data-deck-display]"
-)!;
+const deckStack: HTMLElement = document.querySelector("[data-deck]")!;
 // HTML elements
 
 // DISPLAY
@@ -46,25 +50,36 @@ const CARDS = {
 };
 
 class Card {
-  position: number;
   suit: number;
   number: number;
   color: number;
   display: string;
   isRevealed: boolean = false;
+  button: HTMLElement;
+  stack: Stack;
 
-  constructor(position: number) {
-    this.position = position;
-    this.suit = Math.floor(this.position / 13);
-    this.number = this.position % 13;
+  constructor(position: number, stack: Stack) {
+    this.suit = Math.floor(position / 13);
+    this.number = position % 13;
     this.display = this.displayCard();
     this.isRevealed = false;
+
     if (this.suit == 0 || this.suit == 1) {
       this.color = 0;
     } else {
       this.color = 1;
     } // 0 = red, 1 = black
+
+    this.button = document.createElement("BUTTON");
+    let text = document.createTextNode(this.display);
+    this.button.appendChild(text);
+
+    this.button.addEventListener("click", () => {
+      this.selectCard();
+    });
+    this.stack = stack;
   }
+  selectCard() {}
 
   displayCard(): string {
     if (CARDS[this.number] != undefined) {
@@ -73,220 +88,258 @@ class Card {
       return `${this.number + 1}-${SUITS[this.suit]}`;
     }
   }
+
+  revealCard(): void {
+    this.isRevealed = true;
+    this.button.innerHTML = "";
+    let text = document.createTextNode(this.display);
+    this.button.appendChild(text);
+  }
+
+  hideCard(): void {
+    this.isRevealed = false;
+    this.button.innerHTML = "";
+    let text = document.createTextNode("[---]");
+    this.button.appendChild(text);
+  }
 }
 
 class Stack {
-  button: HTMLButtonElement;
-  textElement: HTMLTextAreaElement;
-  stackType: string;
+  container: HTMLElement;
   cards: Card[] = [];
-  suit: number | undefined;
-  currentNumber: number = 0;
+  addCard: Function;
+  removeCard: Function;
+  updateStack: Function;
+  isValid: Function;
 
-  constructor(
-    button: HTMLButtonElement,
-    textElement: HTMLTextAreaElement,
-    suit?: number
-  ) {
-    this.button = button;
-    this.textElement = textElement;
-    this.stackType = button.getAttribute("stack-type")!;
+  constructor(container: HTMLElement) {
+    this.container = container;
+  }
+}
+
+class MainStack extends Stack {
+  constructor(container: HTMLElement) {
+    super(container);
+
+    this.addCard = function addCard(card: Card): void {
+      this.container.appendChild(card.button);
+      this.cards.unshift(card);
+    };
+
+    this.removeCard = function removeCard(position?: number): Card[] {
+      if (position == undefined) {
+        position = 1;
+      }
+      this.container.removeChild(this.container.lastChild!);
+      let removedCards: Card[] = [];
+      for (let i = 0; i < position; i++) {
+        removedCards.unshift(this.cards.shift()!);
+      }
+      if (this.cards[0].isRevealed == false) {
+        this.cards[0].revealCard();
+      }
+      return removedCards;
+    };
+
+    this.updateStack = function updateStack(): void {
+      this.container.innerHTML = "";
+      let card: Card;
+      for (let i = this.cards.length - 1; i >= 0; i--) {
+        card = this.cards[i];
+        this.container.appendChild(card.button[i]);
+      }
+    };
+
+    this.isValid = function isValid(card: Card): boolean {
+      return (
+        card.color != this.cards[0].color &&
+        card.number == this.cards[0].number - 1
+      );
+    };
+  }
+}
+
+class SuitStack extends Stack {
+  suit: number | undefined;
+
+  constructor(container: HTMLElement, suit: number) {
+    super(container);
     this.suit = suit;
+
+    this.addCard = function addCard(card: Card): void {
+      this.container.innerHTML = "";
+      this.container.appendChild(card.button);
+      this.cards.unshift(card);
+    };
+
+    this.removeCard = function removeCard(): Card {
+      this.container.innerHTML = "";
+      let card = this.cards.shift()!;
+      this.container.appendChild(this.cards[0].button);
+      return card;
+    };
+
+    this.updateStack = function updateStack(): void {
+      this.container.innerHTML = "";
+      if (this.cards.length > 0) {
+        this.container.appendChild(this.cards[0].button);
+      } else {
+        this.container.appendChild(document.createTextNode("[---]"));
+      }
+    };
+
+    this.isValid = function isValid(card: Card): boolean {
+      return card.suit == this.suit && card.number == this.cards.length;
+    };
+  }
+}
+
+class DrawStack extends Stack {
+  constructor(container: HTMLElement) {
+    super(container);
+
+    this.addCard = function isValid(): boolean {
+      console.warn("Cards Cannot be moved into the deck!");
+      return false;
+    };
+
+    this.removeCard = function removeCard(): Card {
+      this.container.innerHTML = "";
+      this.container.appendChild(this.cards[0].button);
+      return this.cards.shift()!;
+    };
+
+    this.updateStack = function updateDeck(): void {
+      this.container.innerHTML = "";
+      let topCard = this.cards[0];
+      if (topCard != undefined) {
+        this.container.appendChild(topCard.button);
+      } else {
+        this.container.appendChild(document.createTextNode("[---]"));
+      }
+    };
   }
 
-  displayStack(): string {
-    let display: string = "";
-    for (var i = this.cards.length - 1; i > -1; i--) {
-      let card = this.cards[i];
-      if (card.isRevealed) {
-        display = `${display} ${card.display}`;
-      } else {
-        display = `${display} [---]`;
+  cycleDeck(): void {
+    this.container.removeChild(this.container.firstChild!);
+    this.cards.push(this.cards.shift()!);
+    this.container.appendChild(this.cards[0].button);
+  }
+
+  dealCards(): void {
+    this.cards = [];
+    for (var i = 0; i < 52; i++) {
+      draw.cards.push(new Card(i, draw));
+    }
+    draw.cards.sort((a: any) => 0.5 - Math.random());
+
+    for (let i = 0; i < 7; i++) {
+      for (let j = 0; j < i + 1; j++) {
+        let card: Card = draw.cards.shift()!;
+        mains[i].addCard(card);
       }
     }
-    return display;
+    mains.forEach((stack: { cards: { isRevealed: boolean }[] }) => {
+      stack.cards[0].isRevealed = true;
+    });
   }
 }
 
-function updateDisplay(stacks: Stack[][]): void {
-  stacks[2].forEach((stack) => {
-    stack.textElement.innerText = stack.displayStack();
+function updateDisplay(): void {
+  mains.forEach((stack) => {
+    stack.updateStack();
   });
-  stacks[1].forEach((stack) => {
-    let topCard: Card = stack.cards[0];
-    if (topCard != undefined) {
-      stack.textElement.innerText = topCard.display;
-    } else {
-      stack.textElement.innerText = "[---]";
-    }
+  suits.forEach((stack) => {
+    stack.updateStack();
   });
-  let stack: Stack = stacks[0][0];
-  let topCard: Card = stack.cards[0];
-  if (topCard != undefined) {
-    stack.textElement.innerText = topCard.display;
-  } else {
-    stack.textElement.innerText = "[---]";
-  }
-}
-
-function dealCards(): void {
-  for (let i = 0; i < 7; i++) {
-    for (let j = 0; j < i + 1; j++) {
-      let card: Card = stacks[0][0].cards.shift()!;
-      stacks[2][i].cards.push(card);
-    }
-  }
-  stacks[2].forEach((stack) => {
-    stack.cards[0].isRevealed = true;
-  });
+  draw.updateStack();
 }
 // DISPLAY
 
 // GAMEPLAY
-var selectedStack: Stack | undefined;
+var selectedStack: Stack | undefined = undefined;
+var cardPosition: number | undefined = undefined;
 
-function selectStack(stack: Stack): void {
+function selectStack(stack: Stack, position?: number): void {
   if (selectedStack == undefined) {
     selectedStack = stack;
+    if (position == undefined) {
+      cardPosition = undefined;
+    } else {
+      cardPosition = position;
+    }
+
     console.log("BEING SELECTED");
     return;
-  } else if (stack.stackType == "0") {
-    if (selectedStack.stackType == "0") {
-      stack.cards.push(stack.cards.shift()!); // Remove ! and fix for when draw stack is empty
+  } else if (typeof stack == typeof deckStack) {
+    if (typeof selectedStack == typeof deckStack) {
+      draw.cycleDeck(); // Remove ! and fix for when draw stack is empty
     } else {
       console.warn("Cannot Move Card to Deck!");
     }
   } else {
     console.log("CHECKING VALIDITY");
 
-    if (isValid(selectedStack, stack)) {
-      var card: Card | undefined = selectedStack.cards.shift();
-      if (card != undefined) {
-        card.isRevealed = true;
-        stack.cards.unshift(card);
-        let toReveal = selectedStack.cards[0];
-        if (toReveal != undefined) {
-          toReveal.isRevealed = true;
-        }
-        stack.currentNumber++;
-      } else {
-        console.warn("Invalid Move (1)");
+    if (stack.isValid(stack) && selectedStack.cards.length > 0) {
+      stack.addCard(selectedStack.removeCard());
+
+      var card: Card | undefined = selectedStack.cards.shift()!;
+      card.isRevealed = true;
+      stack.cards.unshift(card);
+      let toReveal = selectedStack.cards[0];
+      if (toReveal != undefined) {
+        toReveal.isRevealed = true;
       }
     } else {
-      console.warn("Invalid Move (2)");
+      console.warn("Invalid Move (1)");
     }
   }
   console.log("BEING UNDEFINED");
   selectedStack = undefined;
-  updateDisplay(stacks);
+  // updateDisplay();
 }
-
-function isValid(stackFrom: Stack, stackTo: Stack): boolean {
-  let card = stackFrom.cards[0];
-  console.log(`card: ${card.display}`);
-  if (stackTo.stackType == "2") {
-    if (stackTo.cards.length == 0) return true;
-    let cardOn = stackTo.cards[0];
-    console.log(`cardOn: ${cardOn.display}`);
-
-    ///////
-    console.log(
-      `${card.color} != ${cardOn.color}: ${card.color != cardOn.color}`
-    );
-    console.log(
-      `${card.number} == ${cardOn.number - 1}: ${
-        card.number == cardOn.number - 1
-      }`
-    );
-    console.log(
-      `RETURNING: ${
-        card.color != cardOn.color && card.number == cardOn.number - 1
-      }`
-    );
-    ///////
-    return card.color != cardOn.color && card.number == cardOn.number - 1;
-  } else if (stackTo.stackType == "1") {
-    ////////////////////////////////
-    console.log(
-      `${card.suit} == ${stackTo.suit}: ${card.suit == stackTo.suit}`
-    );
-    console.log(
-      `${card.number} == ${stackTo.currentNumber}: ${
-        card.number == stackTo.currentNumber
-      }`
-    );
-    console.log(
-      `RETURNING: ${
-        card.suit == stackTo.suit && card.number == stackTo.currentNumber
-      }`
-    );
-    ////////////////
-
-    return card.suit == stackTo.suit && card.number == stackTo.currentNumber;
-  } else return false;
-}
-
-function moveCard(card: Card, stackTo: Stack) {}
-
 function reset() {
-  stacks.forEach((stackSet) => {
-    stackSet.forEach((stack) => {
-      stack.cards = [];
-    });
+  draw.container.innerHTML = "";
+  mains.forEach((stack) => {
+    while (stack.container.firstChild != null) {
+      console.log(`REMOVING ${stack.container.firstChild}`);
+      stack.container.removeChild(stack.container.firstChild);
+    }
+    stack.cards = [];
   });
-  for (var i = 0; i < 52; i++) {
-    stacks[0][0].cards.push(new Card(i));
-  }
-  stacks[0][0].cards.sort((a) => 0.5 - Math.random());
-  dealCards();
-
-  stacks.forEach((stackSet) => {
-    stackSet.forEach((stack) => {
-      stack.textElement.innerText = "";
-    });
+  suits.forEach((stack: Stack) => {
+    while (stack.container.firstChild != null) {
+      console.log(`REMOVING ${stack.container.firstChild}`);
+      stack.container.removeChild(stack.container.firstChild);
+    }
+    stack.cards = [];
   });
+  draw.dealCards();
 }
 // GAMEPLAY
 
-// Stacks
-function defineStacks(): Stack[][] {
-  let deckStack: Stack = new Stack(deckButton, deckTextElement);
-  let mainStacks: Stack[] = [];
-  let suitStacks: Stack[] = [];
-
-  for (var i = 0; i < 7; i++) {
-    let button = mainStackButtons[i];
-    let textElement = mainStackTextElements[i];
-    mainStacks.push(new Stack(button, textElement));
-  }
-
-  for (var i = 0; i < 4; i++) {
-    let button = suitStackButtons[i];
-    let textElement = suitStackTextElements[i];
-    suitStacks.push(new Stack(button, textElement, i));
-  }
-
-  return [[deckStack], suitStacks, mainStacks];
-}
-
-function setButtons(): void {
-  stacks.forEach((stackSet) => {
-    stackSet.forEach((stack) => {
-      stack.button.addEventListener("click", () => {
-        selectStack(stack);
-      });
-    });
-  });
-
-  newGameButton!.addEventListener("click", () => {
-    reset();
-    updateDisplay(stacks);
-  });
-}
-// Stacks
-
 // Variables
-const stacks = defineStacks();
-setButtons();
-reset();
+
+const draw: DrawStack = new DrawStack(deckStack);
+
+let temp: any = [];
+
+for (var i = 0; i < 4; i++) {
+  let element = suitStacks[i];
+  temp.push(new SuitStack(element, i));
+}
+
+const suits = temp;
+
+temp = [];
+for (var i = 0; i < 7; i++) {
+  let element = mainStacks[i];
+  temp.push(new MainStack(element));
+}
+const mains: MainStack[] = temp;
+
+newGameButton!.addEventListener("click", () => {
+  reset();
+  updateDisplay();
+});
 // Variables
