@@ -33,11 +33,11 @@
 // HTML elements
 const newGameButton: HTMLButtonElement =
   document.querySelector("[data-new-game]")!;
-const mainStacks: NodeListOf<HTMLElement> =
+const mainStacks: NodeListOf<HTMLDivElement> =
   document.querySelectorAll("[data-main-stack]")!;
-const suitStacks: NodeListOf<HTMLElement> =
+const suitStacks: NodeListOf<HTMLDivElement> =
   document.querySelectorAll("[data-suit-stack]")!;
-const deckStack: HTMLElement = document.querySelector("[data-deck]")!;
+const deckStack: HTMLDivElement = document.querySelector("[data-deck]")!;
 // HTML elements
 
 // DISPLAY
@@ -105,20 +105,20 @@ class Card {
 }
 
 class Stack {
-  container: HTMLElement;
+  container: HTMLDivElement;
   cards: Card[] = [];
   addCard: Function;
   removeCard: Function;
   updateStack: Function;
   isValid: Function;
 
-  constructor(container: HTMLElement) {
+  constructor(container: HTMLDivElement) {
     this.container = container;
   }
 }
 
 class MainStack extends Stack {
-  constructor(container: HTMLElement) {
+  constructor(container: HTMLDivElement) {
     super(container);
 
     this.addCard = function addCard(card: Card): void {
@@ -146,7 +146,7 @@ class MainStack extends Stack {
       let card: Card;
       for (let i = this.cards.length - 1; i >= 0; i--) {
         card = this.cards[i];
-        this.container.appendChild(card.button[i]);
+        this.container.appendChild(card.button);
       }
     };
 
@@ -161,30 +161,32 @@ class MainStack extends Stack {
 
 class SuitStack extends Stack {
   suit: number | undefined;
+  defaultHTML: string;
 
-  constructor(container: HTMLElement, suit: number) {
+  constructor(container: HTMLDivElement, suit: number) {
     super(container);
     this.suit = suit;
+    this.defaultHTML = `${SUITS[this.suit]}: `;
 
     this.addCard = function addCard(card: Card): void {
-      this.container.innerHTML = "";
+      this.container.innerHTML = this.defaultHTML;
       this.container.appendChild(card.button);
       this.cards.unshift(card);
     };
 
     this.removeCard = function removeCard(): Card {
-      this.container.innerHTML = "";
+      this.container.innerHTML = this.defaultHTML;
       let card = this.cards.shift()!;
       this.container.appendChild(this.cards[0].button);
       return card;
     };
 
     this.updateStack = function updateStack(): void {
-      this.container.innerHTML = "";
+      this.container.innerHTML = this.defaultHTML;
       if (this.cards.length > 0) {
         this.container.appendChild(this.cards[0].button);
       } else {
-        this.container.appendChild(document.createTextNode("[---]"));
+        this.container.appendChild(document.createTextNode("[---]")); // THERE IS NO BUTTON TO HIT ON THIS SUIT STACKS
       }
     };
 
@@ -195,7 +197,9 @@ class SuitStack extends Stack {
 }
 
 class DrawStack extends Stack {
-  constructor(container: HTMLElement) {
+  defaultHTML: string = "Deck: ";
+
+  constructor(container: HTMLDivElement) {
     super(container);
 
     this.addCard = function isValid(): boolean {
@@ -204,13 +208,13 @@ class DrawStack extends Stack {
     };
 
     this.removeCard = function removeCard(): Card {
-      this.container.innerHTML = "";
+      this.container.innerHTML = this.defaultHTML;
       this.container.appendChild(this.cards[0].button);
       return this.cards.shift()!;
     };
 
     this.updateStack = function updateDeck(): void {
-      this.container.innerHTML = "";
+      this.container.innerHTML = this.defaultHTML;
       let topCard = this.cards[0];
       if (topCard != undefined) {
         this.container.appendChild(topCard.button);
@@ -299,22 +303,22 @@ function selectStack(stack: Stack, position?: number): void {
   // updateDisplay();
 }
 function reset() {
-  draw.container.innerHTML = "";
-  mains.forEach((stack) => {
+  draw.container.innerHTML = draw.defaultHTML;
+  mains.forEach((stack: MainStack) => {
     while (stack.container.firstChild != null) {
-      console.log(`REMOVING ${stack.container.firstChild}`);
       stack.container.removeChild(stack.container.firstChild);
     }
     stack.cards = [];
   });
-  suits.forEach((stack: Stack) => {
-    while (stack.container.firstChild != null) {
-      console.log(`REMOVING ${stack.container.firstChild}`);
-      stack.container.removeChild(stack.container.firstChild);
+  suits.forEach((stack: SuitStack) => {
+    if (stack.container.firstChild != null) {
+      stack.container.removeChild(stack.container.firstChild!);
+      stack.cards = [];
     }
-    stack.cards = [];
   });
+
   draw.dealCards();
+  updateDisplay();
 }
 // GAMEPLAY
 
@@ -329,7 +333,7 @@ for (var i = 0; i < 4; i++) {
   temp.push(new SuitStack(element, i));
 }
 
-const suits = temp;
+const suits: SuitStack[] = temp;
 
 temp = [];
 for (var i = 0; i < 7; i++) {

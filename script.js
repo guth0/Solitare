@@ -136,7 +136,7 @@ var MainStack = /** @class */ (function (_super) {
             var card;
             for (var i_2 = this.cards.length - 1; i_2 >= 0; i_2--) {
                 card = this.cards[i_2];
-                this.container.appendChild(card.button[i_2]);
+                this.container.appendChild(card.button);
             }
         };
         _this.isValid = function isValid(card) {
@@ -152,19 +152,20 @@ var SuitStack = /** @class */ (function (_super) {
     function SuitStack(container, suit) {
         var _this = _super.call(this, container) || this;
         _this.suit = suit;
+        _this.defaultHTML = "".concat(SUITS[_this.suit], ": ");
         _this.addCard = function addCard(card) {
-            this.container.innerHTML = "";
+            this.container.innerHTML = this.defaultHTML;
             this.container.appendChild(card.button);
             this.cards.unshift(card);
         };
         _this.removeCard = function removeCard() {
-            this.container.innerHTML = "";
+            this.container.innerHTML = this.defaultHTML;
             var card = this.cards.shift();
             this.container.appendChild(this.cards[0].button);
             return card;
         };
         _this.updateStack = function updateStack() {
-            this.container.innerHTML = "";
+            this.container.innerHTML = this.defaultHTML;
             if (this.cards.length > 0) {
                 this.container.appendChild(this.cards[0].button);
             }
@@ -183,17 +184,18 @@ var DrawStack = /** @class */ (function (_super) {
     __extends(DrawStack, _super);
     function DrawStack(container) {
         var _this = _super.call(this, container) || this;
+        _this.defaultHTML = "Deck: ";
         _this.addCard = function isValid() {
             console.warn("Cards Cannot be moved into the deck!");
             return false;
         };
         _this.removeCard = function removeCard() {
-            this.container.innerHTML = "";
+            this.container.innerHTML = this.defaultHTML;
             this.container.appendChild(this.cards[0].button);
             return this.cards.shift();
         };
         _this.updateStack = function updateDeck() {
-            this.container.innerHTML = "";
+            this.container.innerHTML = this.defaultHTML;
             var topCard = this.cards[0];
             if (topCard != undefined) {
                 this.container.appendChild(topCard.button);
@@ -209,6 +211,22 @@ var DrawStack = /** @class */ (function (_super) {
         this.cards.push(this.cards.shift());
         this.container.appendChild(this.cards[0].button);
     };
+    DrawStack.prototype.dealCards = function () {
+        this.cards = [];
+        for (var i = 0; i < 52; i++) {
+            draw.cards.push(new Card(i, draw));
+        }
+        draw.cards.sort(function (a) { return 0.5 - Math.random(); });
+        for (var i_3 = 0; i_3 < 7; i_3++) {
+            for (var j = 0; j < i_3 + 1; j++) {
+                var card = draw.cards.shift();
+                mains[i_3].addCard(card);
+            }
+        }
+        mains.forEach(function (stack) {
+            stack.cards[0].isRevealed = true;
+        });
+    };
     return DrawStack;
 }(Stack));
 function updateDisplay() {
@@ -219,17 +237,6 @@ function updateDisplay() {
         stack.updateStack();
     });
     draw.updateStack();
-}
-function dealCards() {
-    for (var i_3 = 0; i_3 < 7; i_3++) {
-        for (var j = 0; j < i_3 + 1; j++) {
-            var card = draw.cards.shift();
-            mains[i_3].cards.push(card);
-        }
-    }
-    mains.forEach(function (stack) {
-        stack.cards[0].isRevealed = true;
-    });
 }
 // DISPLAY
 // GAMEPLAY
@@ -276,27 +283,21 @@ function selectStack(stack, position) {
     // updateDisplay();
 }
 function reset() {
-    draw.container.innerHTML = "";
+    draw.container.innerHTML = draw.defaultHTML;
     mains.forEach(function (stack) {
         while (stack.container.firstChild != null) {
-            console.log("REMOVING ".concat(stack.container.firstChild));
             stack.container.removeChild(stack.container.firstChild);
         }
         stack.cards = [];
     });
     suits.forEach(function (stack) {
-        while (stack.container.firstChild != null) {
-            console.log("REMOVING ".concat(stack.container.firstChild));
+        if (stack.container.firstChild != null) {
             stack.container.removeChild(stack.container.firstChild);
+            stack.cards = [];
         }
-        stack.cards = [];
     });
-    draw.cards = [];
-    for (var i = 0; i < 52; i++) {
-        draw.cards.push(new Card(i, draw));
-    }
-    draw.cards.sort(function (a) { return 0.5 - Math.random(); });
-    dealCards();
+    draw.dealCards();
+    updateDisplay();
 }
 // GAMEPLAY
 // Variables
@@ -317,5 +318,4 @@ newGameButton.addEventListener("click", function () {
     reset();
     updateDisplay();
 });
-reset();
 // Variables
