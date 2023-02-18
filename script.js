@@ -143,6 +143,10 @@ var MainStack = /** @class */ (function (_super) {
             return (card.color != this.cards[0].color &&
                 card.number == this.cards[0].number - 1);
         };
+        _this.reset = function reset() {
+            this.cards = [];
+            this.container.innerHTML = "";
+        };
         return _this;
     }
     return MainStack;
@@ -151,8 +155,12 @@ var SuitStack = /** @class */ (function (_super) {
     __extends(SuitStack, _super);
     function SuitStack(container, suit) {
         var _this = _super.call(this, container) || this;
+        _this.button = document.createElement("button");
         _this.suit = suit;
         _this.defaultHTML = "".concat(SUITS[_this.suit], ": ");
+        _this.container.innerHTML = _this.defaultHTML;
+        _this.container.appendChild(_this.button);
+        _this.button.innerHTML = "[---]";
         _this.addCard = function addCard(card) {
             this.container.innerHTML = this.defaultHTML;
             this.container.appendChild(card.button);
@@ -170,11 +178,15 @@ var SuitStack = /** @class */ (function (_super) {
                 this.container.appendChild(this.cards[0].button);
             }
             else {
-                this.container.appendChild(document.createTextNode("[---]"));
+                this.container.appendChild(document.createTextNode("[---]")); // THERE IS NO BUTTON TO HIT ON THIS SUIT STACKS
             }
         };
         _this.isValid = function isValid(card) {
             return card.suit == this.suit && card.number == this.cards.length;
+        };
+        _this.reset = function reset() {
+            this.button.innerHTML = "[---]";
+            this.cards = [];
         };
         return _this;
     }
@@ -185,24 +197,31 @@ var DrawStack = /** @class */ (function (_super) {
     function DrawStack(container) {
         var _this = _super.call(this, container) || this;
         _this.defaultHTML = "Deck: ";
+        _this.button = document.createElement("button");
+        _this.container.innerHTML = _this.defaultHTML;
+        _this.container.appendChild(_this.button);
+        _this.button.innerText = "[---]";
         _this.addCard = function isValid() {
             console.warn("Cards Cannot be moved into the deck!");
             return false;
         };
         _this.removeCard = function removeCard() {
-            this.container.innerHTML = this.defaultHTML;
-            this.container.appendChild(this.cards[0].button);
-            return this.cards.shift();
+            var card = this.cards.shift(); // MIGHT NOT ALWAYS BE NON-NULL
+            this.button.innerText = this.cards[0].display;
+            return card;
         };
         _this.updateStack = function updateDeck() {
-            this.container.innerHTML = this.defaultHTML;
             var topCard = this.cards[0];
             if (topCard != undefined) {
-                this.container.appendChild(topCard.button);
+                this.button.innerText = topCard.display;
             }
             else {
-                this.container.appendChild(document.createTextNode("[---]"));
+                this.button.innerText = "[---]";
             }
+        };
+        _this.reset = function reset() {
+            this.button.innerText = "[---]";
+            this.cards = [];
         };
         return _this;
     }
@@ -283,18 +302,12 @@ function selectStack(stack, position) {
     // updateDisplay();
 }
 function reset() {
-    draw.container.innerHTML = draw.defaultHTML;
+    draw.reset();
     mains.forEach(function (stack) {
-        while (stack.container.firstChild != null) {
-            stack.container.removeChild(stack.container.firstChild);
-        }
-        stack.cards = [];
+        stack.reset();
     });
     suits.forEach(function (stack) {
-        if (stack.container.firstChild != null) {
-            stack.container.removeChild(stack.container.firstChild);
-            stack.cards = [];
-        }
+        stack.reset();
     });
     draw.dealCards();
     updateDisplay();
@@ -315,7 +328,10 @@ for (var i = 0; i < 7; i++) {
 }
 var mains = temp;
 newGameButton.addEventListener("click", function () {
+    console.log(suits[0].container.innerHTML);
     reset();
+    console.log(suits[0].container.innerHTML);
     updateDisplay();
+    console.log(suits[0].container.innerHTML);
 });
 // Variables
