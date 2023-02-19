@@ -39,10 +39,12 @@ var __extends = (this && this.__extends) || (function () {
 //     selectStack()
 //     isValid()
 //     reset()
+//     MainStack.removeCard()
 //   IMPLIMENT:
 //     moveCard()
 //   REMOVE:
-//     change ".currentNumber" to ".cards.length"
+//     Card.revealCard()
+//     Card.hideCard()
 // HTML elements
 var newGameButton = document.querySelector("[data-new-game]");
 var mainStacks = document.querySelectorAll("[data-main-stack]");
@@ -59,27 +61,22 @@ var CARDS = {
 };
 var Card = /** @class */ (function () {
     function Card(position, stack) {
-        var _this = this;
-        this.isRevealed = false;
         this.suit = Math.floor(position / 13);
         this.number = position % 13;
         this.display = this.displayCard();
-        this.isRevealed = false;
         if (this.suit == 0 || this.suit == 1) {
             this.color = 0;
         }
         else {
             this.color = 1;
         } // 0 = red, 1 = black
-        this.button = document.createElement("BUTTON");
-        var text = document.createTextNode(this.display);
-        this.button.appendChild(text);
-        this.button.addEventListener("click", function () {
-            _this.selectCard();
-        });
         this.stack = stack;
+        this.button = document.createElement("button");
+        this.button.innerText = this.display;
+        if (this.color == 0) {
+            this.button.style.color = "rgba(255, 0, 0, 1)";
+        }
     }
-    Card.prototype.selectCard = function () { };
     Card.prototype.displayCard = function () {
         if (CARDS[this.number] != undefined) {
             return "".concat(CARDS[this.number], "-").concat(SUITS[this.suit]);
@@ -88,18 +85,6 @@ var Card = /** @class */ (function () {
             return "".concat(this.number + 1, "-").concat(SUITS[this.suit]);
         }
     };
-    Card.prototype.revealCard = function () {
-        this.isRevealed = true;
-        this.button.innerHTML = "";
-        var text = document.createTextNode(this.display);
-        this.button.appendChild(text);
-    };
-    Card.prototype.hideCard = function () {
-        this.isRevealed = false;
-        this.button.innerHTML = "";
-        var text = document.createTextNode("[---]");
-        this.button.appendChild(text);
-    };
     return Card;
 }());
 var Stack = /** @class */ (function () {
@@ -107,15 +92,30 @@ var Stack = /** @class */ (function () {
         this.cards = [];
         this.container = container;
     }
+    Stack.prototype.selectCard = function (card) {
+        throw new Error("Method not implemented.");
+    };
     return Stack;
 }());
 var MainStack = /** @class */ (function (_super) {
     __extends(MainStack, _super);
-    function MainStack(container) {
+    function MainStack(container, numHidden) {
         var _this = _super.call(this, container) || this;
+        _this.numHidden = numHidden;
+        if (_this.numHidden != 0) {
+            for (var i_1 = 0; i_1 < numHidden; i_1++) {
+                _this.container.innerText = _this.container.innerText + "[---] ";
+            }
+        }
         _this.addCard = function addCard(card) {
-            this.container.appendChild(card.button);
+            card.position = this.cards.length;
             this.cards.unshift(card);
+            var button = document.createElement("button");
+            button.innerHTML = card.display;
+            this.container.appendChild(button);
+            button.addEventListener("click", function () {
+                console.warn("FUNCTION NOT IMPLEMENTED!");
+            });
         };
         _this.removeCard = function removeCard(position) {
             if (position == undefined) {
@@ -123,21 +123,31 @@ var MainStack = /** @class */ (function (_super) {
             }
             this.container.removeChild(this.container.lastChild);
             var removedCards = [];
-            for (var i_1 = 0; i_1 < position; i_1++) {
+            for (var i_2 = 0; i_2 < position; i_2++) {
                 removedCards.unshift(this.cards.shift());
             }
             if (this.cards[0].isRevealed == false) {
                 this.cards[0].revealCard();
             }
+            this.numHidden -= 1;
             return removedCards;
         };
         _this.updateStack = function updateStack() {
+            var _this = this;
             this.container.innerHTML = "";
-            var card;
-            for (var i_2 = this.cards.length - 1; i_2 >= 0; i_2--) {
-                card = this.cards[i_2];
-                this.container.appendChild(card.button);
+            if (this.numHidden != 0) {
+                for (var i_3 = 0; i_3 < numHidden; i_3++) {
+                    this.container.innerText = this.container.innerText + "[---] ";
+                }
             }
+            this.cards.forEach(function (card) {
+                var button = document.createElement("button");
+                button.innerText = card.display;
+                _this.container.appendChild(button);
+                _this.button.addEventListener("click", function () {
+                    console.log("FUNCTION NOT IMPLIMENTED");
+                });
+            });
         };
         _this.isValid = function isValid(card) {
             return (card.color != this.cards[0].color &&
@@ -147,8 +157,28 @@ var MainStack = /** @class */ (function (_super) {
             this.cards = [];
             this.container.innerHTML = "";
         };
+        _this.update = function update() {
+            this.container.innerHTML = "";
+            if (this.numHidden != 0) {
+                for (var i_4 = 0; i_4 < numHidden; i_4++) {
+                    this.container.innerText = this.container.innerText + "[---] ";
+                }
+            }
+            for (var i_5 = this.cards.length - 1; i_5 > this.numHidden - 1; i_5--) {
+                var card = this.cards[i_5];
+                var button = document.createElement("button");
+                this.container.appendChild(button);
+                button.innerText = card.display;
+                button.onclick = function () {
+                    console.log("CLICK NOT IMPLIED");
+                };
+            }
+        };
         return _this;
     }
+    MainStack.prototype.revealCard = function () {
+        console.log("FUNCTION NOT IMPLEMENTED!");
+    };
     return MainStack;
 }(Stack));
 var SuitStack = /** @class */ (function (_super) {
@@ -161,31 +191,32 @@ var SuitStack = /** @class */ (function (_super) {
         _this.container.innerHTML = _this.defaultHTML;
         _this.container.appendChild(_this.button);
         _this.button.innerHTML = "[---]";
+        _this.button.addEventListener("click", function () {
+            console.log("FUNCTION NOT IMPLEMENTED!");
+        });
         _this.addCard = function addCard(card) {
-            this.container.innerHTML = this.defaultHTML;
-            this.container.appendChild(card.button);
             this.cards.unshift(card);
+            this.button.innerText = card.display;
         };
         _this.removeCard = function removeCard() {
-            this.container.innerHTML = this.defaultHTML;
             var card = this.cards.shift();
-            this.container.appendChild(this.cards[0].button);
+            this.button.innerText = this.cards[0].display;
             return card;
         };
         _this.updateStack = function updateStack() {
             this.container.innerHTML = this.defaultHTML;
             if (this.cards.length > 0) {
-                this.container.appendChild(this.cards[0].button);
+                this.button.innerText = this.cards[0].button;
             }
             else {
-                this.container.appendChild(document.createTextNode("[---]")); // THERE IS NO BUTTON TO HIT ON THIS SUIT STACKS
+                this.button.innerText = "[---]"; // THERE IS NO BUTTON TO HIT ON THIS SUIT STACKS
             }
         };
         _this.isValid = function isValid(card) {
             return card.suit == this.suit && card.number == this.cards.length;
         };
         _this.reset = function reset() {
-            this.button.innerHTML = "[---]";
+            this.button.innerText = "[---]";
             this.cards = [];
         };
         return _this;
@@ -201,6 +232,9 @@ var DrawStack = /** @class */ (function (_super) {
         _this.container.innerHTML = _this.defaultHTML;
         _this.container.appendChild(_this.button);
         _this.button.innerText = "[---]";
+        _this.button.addEventListener("click", function () {
+            console.log("FUNCTION NOT IMPLEMENTED!");
+        });
         _this.addCard = function isValid() {
             console.warn("Cards Cannot be moved into the deck!");
             return false;
@@ -226,9 +260,8 @@ var DrawStack = /** @class */ (function (_super) {
         return _this;
     }
     DrawStack.prototype.cycleDeck = function () {
-        this.container.removeChild(this.container.firstChild);
         this.cards.push(this.cards.shift());
-        this.container.appendChild(this.cards[0].button);
+        this.button.innerText = this.cards[0].display;
     };
     DrawStack.prototype.dealCards = function () {
         this.cards = [];
@@ -236,15 +269,12 @@ var DrawStack = /** @class */ (function (_super) {
             draw.cards.push(new Card(i, draw));
         }
         draw.cards.sort(function (a) { return 0.5 - Math.random(); });
-        for (var i_3 = 0; i_3 < 7; i_3++) {
-            for (var j = 0; j < i_3 + 1; j++) {
+        for (var i_6 = 0; i_6 < 7; i_6++) {
+            for (var j = 0; j < i_6 + 1; j++) {
                 var card = draw.cards.shift();
-                mains[i_3].addCard(card);
+                mains[i_6].addCard(card);
             }
         }
-        mains.forEach(function (stack) {
-            stack.cards[0].isRevealed = true;
-        });
     };
     return DrawStack;
 }(Stack));
@@ -261,15 +291,11 @@ function updateDisplay() {
 // GAMEPLAY
 var selectedStack = undefined;
 var cardPosition = undefined;
+function moveCard(stackTo, stackFrom, position) { }
 function selectStack(stack, position) {
     if (selectedStack == undefined) {
         selectedStack = stack;
-        if (position == undefined) {
-            cardPosition = undefined;
-        }
-        else {
-            cardPosition = position;
-        }
+        cardPosition = position;
         console.log("BEING SELECTED");
         return;
     }
@@ -283,18 +309,20 @@ function selectStack(stack, position) {
     }
     else {
         console.log("CHECKING VALIDITY");
-        if (stack.isValid(stack) && selectedStack.cards.length > 0) {
-            stack.addCard(selectedStack.removeCard());
+        if (selectedStack.cards.length > 0 &&
+            stack.isValid(selectedStack.cards[0])) {
+            card = selectedStack.removeCard();
+            stack.addCard(card);
             var card = selectedStack.cards.shift();
-            card.isRevealed = true;
+            // card.isRevealed = true;
             stack.cards.unshift(card);
-            var toReveal = selectedStack.cards[0];
-            if (toReveal != undefined) {
-                toReveal.isRevealed = true;
-            }
+            // let toReveal = selectedStack.cards[0];
+            // if (toReveal != undefined) {
+            //   toReveal.isRevealed = true;
+            // }
         }
         else {
-            console.warn("Invalid Move (1)");
+            console.warn("Invalid Move");
         }
     }
     console.log("BEING UNDEFINED");
@@ -324,14 +352,11 @@ var suits = temp;
 temp = [];
 for (var i = 0; i < 7; i++) {
     var element = mainStacks[i];
-    temp.push(new MainStack(element));
+    temp.push(new MainStack(element, i));
 }
 var mains = temp;
 newGameButton.addEventListener("click", function () {
-    console.log(suits[0].container.innerHTML);
     reset();
-    console.log(suits[0].container.innerHTML);
     updateDisplay();
-    console.log(suits[0].container.innerHTML);
 });
 // Variables

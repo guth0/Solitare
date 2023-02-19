@@ -56,14 +56,14 @@ class Card {
   number: number;
   color: number;
   display: string;
-  isRevealed: boolean = false;
   stack: Stack;
+  position: number;
+  button: HTMLButtonElement;
 
   constructor(position: number, stack: Stack) {
     this.suit = Math.floor(position / 13);
     this.number = position % 13;
     this.display = this.displayCard();
-    this.isRevealed = false;
 
     if (this.suit == 0 || this.suit == 1) {
       this.color = 0;
@@ -71,6 +71,12 @@ class Card {
       this.color = 1;
     } // 0 = red, 1 = black
     this.stack = stack;
+
+    this.button = document.createElement("button");
+    this.button.innerText = this.display;
+    if (this.color == 0) {
+      this.button.style.color = "rgba(255, 0, 0, 1)";
+    }
   }
 
   displayCard(): string {
@@ -93,6 +99,7 @@ class Stack {
   updateStack: Function;
   isValid: Function;
   reset: Function;
+  update: Function;
 
   constructor(container: HTMLDivElement) {
     this.container = container;
@@ -100,11 +107,27 @@ class Stack {
 }
 
 class MainStack extends Stack {
-  constructor(container: HTMLDivElement) {
-    super(container);
+  numHidden: number;
 
+  constructor(container: HTMLDivElement, numHidden: number) {
+    super(container);
+    this.numHidden = numHidden;
+
+    if (this.numHidden != 0) {
+      for (let i = 0; i < numHidden; i++) {
+        this.container.innerText = this.container.innerText + "[---] ";
+      }
+    }
     this.addCard = function addCard(card: Card): void {
-      console.log("FUNCTION NOT IMPLEMENTED!");
+      card.position = this.cards.length;
+      this.cards.unshift(card);
+      let button = document.createElement("button");
+      button.innerHTML = card.display;
+      this.container.appendChild(button);
+
+      button.addEventListener("click", () => {
+        console.warn("FUNCTION NOT IMPLEMENTED!");
+      });
     };
 
     this.removeCard = function removeCard(position?: number): Card[] {
@@ -119,18 +142,26 @@ class MainStack extends Stack {
       if (this.cards[0].isRevealed == false) {
         this.cards[0].revealCard();
       }
+      this.numHidden -= 1;
       return removedCards;
     };
 
     this.updateStack = function updateStack(): void {
       this.container.innerHTML = "";
+
+      if (this.numHidden != 0) {
+        for (let i = 0; i < numHidden; i++) {
+          this.container.innerText = this.container.innerText + "[---] ";
+        }
+      }
+
       this.cards.forEach((card: Card) => {
         let button = document.createElement("button");
         button.innerText = card.display;
         this.container.appendChild(button);
 
         this.button.addEventListener("click", () => {
-          card.stack.selectCard(card);
+          console.log("FUNCTION NOT IMPLIMENTED");
         });
       });
     };
@@ -146,6 +177,28 @@ class MainStack extends Stack {
       this.cards = [];
       this.container.innerHTML = "";
     };
+
+    this.update = function update(): void {
+      this.container.innerHTML = "";
+      if (this.numHidden != 0) {
+        for (let i = 0; i < numHidden; i++) {
+          this.container.innerText = this.container.innerText + "[---] ";
+        }
+      }
+
+      for (let i = this.cards.length - 1; i > this.numHidden - 1; i--) {
+        let card: Card = this.cards[i];
+        let button = document.createElement("button");
+        this.container.appendChild(button);
+        button.innerText = card.display;
+        button.onclick = function () {
+          console.log("CLICK NOT IMPLIED");
+        };
+      }
+    };
+  }
+  revealCard(): void {
+    console.log("FUNCTION NOT IMPLEMENTED!");
   }
 }
 
@@ -191,7 +244,7 @@ class SuitStack extends Stack {
     };
 
     this.reset = function reset(): void {
-      this.button.innerHTML = "[---]";
+      this.button.innerText = "[---]";
       this.cards = [];
     };
   }
@@ -255,9 +308,6 @@ class DrawStack extends Stack {
         mains[i].addCard(card);
       }
     }
-    mains.forEach((stack: { cards: { isRevealed: boolean }[] }) => {
-      stack.cards[0].isRevealed = true;
-    });
   }
 }
 
@@ -276,14 +326,12 @@ function updateDisplay(): void {
 var selectedStack: Stack | undefined = undefined;
 var cardPosition: number | undefined = undefined;
 
+function moveCard(stackTo: Stack, stackFrom: Stack, position: number): void {}
+
 function selectStack(stack: Stack, position?: number): void {
   if (selectedStack == undefined) {
     selectedStack = stack;
-    if (position == undefined) {
-      cardPosition = undefined;
-    } else {
-      cardPosition = position;
-    }
+    cardPosition = position;
 
     console.log("BEING SELECTED");
     return;
@@ -296,18 +344,22 @@ function selectStack(stack: Stack, position?: number): void {
   } else {
     console.log("CHECKING VALIDITY");
 
-    if (stack.isValid(stack) && selectedStack.cards.length > 0) {
-      stack.addCard(selectedStack.removeCard());
+    if (
+      selectedStack.cards.length > 0 &&
+      stack.isValid(selectedStack.cards[0])
+    ) {
+      card = selectedStack.removeCard();
+      stack.addCard(card);
 
       var card: Card | undefined = selectedStack.cards.shift()!;
-      card.isRevealed = true;
+      // card.isRevealed = true;
       stack.cards.unshift(card);
-      let toReveal = selectedStack.cards[0];
-      if (toReveal != undefined) {
-        toReveal.isRevealed = true;
-      }
+      // let toReveal = selectedStack.cards[0];
+      // if (toReveal != undefined) {
+      //   toReveal.isRevealed = true;
+      // }
     } else {
-      console.warn("Invalid Move (1)");
+      console.warn("Invalid Move");
     }
   }
   console.log("BEING UNDEFINED");
@@ -329,7 +381,6 @@ function reset() {
 // GAMEPLAY
 
 // Variables
-
 const draw: DrawStack = new DrawStack(deckStack);
 
 let temp: any = [];
@@ -344,15 +395,12 @@ const suits: SuitStack[] = temp;
 temp = [];
 for (var i = 0; i < 7; i++) {
   let element = mainStacks[i];
-  temp.push(new MainStack(element));
+  temp.push(new MainStack(element, i));
 }
 const mains: MainStack[] = temp;
 
 newGameButton!.addEventListener("click", () => {
-  console.log(suits[0].container.innerHTML);
   reset();
-  console.log(suits[0].container.innerHTML);
   updateDisplay();
-  console.log(suits[0].container.innerHTML);
 });
 // Variables
