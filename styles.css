@@ -7,9 +7,10 @@
 }
 
 .suitStackContainer .Red {
-    color: rgba(255, 0, 0, 1)
+    color: red
 }
 
-/* .mainstackContainer .Red {
-    color: rgba(255, 0, 0, 1)
-} */
+.mainStackContainer .mainStack .Red {
+    color: red
+}
+

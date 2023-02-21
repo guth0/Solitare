@@ -18,6 +18,19 @@
 // UI:
 //   Timer (Update after every move until create UI)
 //   Move count
+//
+// TODO:
+//   FIX:
+//     updateDisplay()
+//     selectStack()
+//     isValid()
+//     reset()
+//     MainStack.removeCard()
+//   IMPLIMENT:
+//     moveCard()
+//   REMOVE:
+//     Card.revealCard()
+//     Card.hideCard()
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -33,18 +46,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-// TODO:
-//   FIX:
-//     updateDisplay()
-//     selectStack()
-//     isValid()
-//     reset()
-//     MainStack.removeCard()
-//   IMPLIMENT:
-//     moveCard()
-//   REMOVE:
-//     Card.revealCard()
-//     Card.hideCard()
 // HTML elements
 var newGameButton = document.querySelector("[data-new-game]");
 var mainStacks = document.querySelectorAll("[data-main-stack]");
@@ -74,7 +75,10 @@ var Card = /** @class */ (function () {
         this.button = document.createElement("button");
         this.button.innerText = this.display;
         if (this.color == 0) {
-            this.button.style.color = "rgba(255, 0, 0, 1)";
+            this.button.style.color = "red";
+        }
+        else {
+            this.button.style.color = "black";
         }
     }
     Card.prototype.displayCard = function () {
@@ -111,7 +115,7 @@ var MainStack = /** @class */ (function (_super) {
             card.position = this.cards.length;
             this.cards.unshift(card);
             var button = document.createElement("button");
-            button.innerHTML = card.display;
+            button.innerText = card.display;
             this.container.appendChild(button);
             button.addEventListener("click", function () {
                 console.warn("FUNCTION NOT IMPLEMENTED!");
@@ -133,21 +137,19 @@ var MainStack = /** @class */ (function (_super) {
             return removedCards;
         };
         _this.updateStack = function updateStack() {
-            var _this = this;
             this.container.innerHTML = "";
             if (this.numHidden != 0) {
                 for (var i_3 = 0; i_3 < numHidden; i_3++) {
                     this.container.innerText = this.container.innerText + "[---] ";
                 }
             }
-            this.cards.forEach(function (card) {
-                var button = document.createElement("button");
-                button.innerText = card.display;
-                _this.container.appendChild(button);
-                _this.button.addEventListener("click", function () {
+            for (var i_4 = this.cards.length - 1; i_4 >= numHidden; i_4--) {
+                var card = this.cards[i_4];
+                this.container.appendChild(card.button);
+                card.button.addEventListener("click", function () {
                     console.log("FUNCTION NOT IMPLIMENTED");
                 });
-            });
+            }
         };
         _this.isValid = function isValid(card) {
             return (card.color != this.cards[0].color &&
@@ -160,12 +162,12 @@ var MainStack = /** @class */ (function (_super) {
         _this.update = function update() {
             this.container.innerHTML = "";
             if (this.numHidden != 0) {
-                for (var i_4 = 0; i_4 < numHidden; i_4++) {
+                for (var i_5 = 0; i_5 < numHidden; i_5++) {
                     this.container.innerText = this.container.innerText + "[---] ";
                 }
             }
-            for (var i_5 = this.cards.length - 1; i_5 > this.numHidden - 1; i_5--) {
-                var card = this.cards[i_5];
+            for (var i_6 = this.cards.length - 1; i_6 > this.numHidden - 1; i_6--) {
+                var card = this.cards[i_6];
                 var button = document.createElement("button");
                 this.container.appendChild(button);
                 button.innerText = card.display;
@@ -190,7 +192,7 @@ var SuitStack = /** @class */ (function (_super) {
         _this.defaultHTML = "".concat(SUITS[_this.suit], ": ");
         _this.container.innerHTML = _this.defaultHTML;
         _this.container.appendChild(_this.button);
-        _this.button.innerHTML = "[---]";
+        _this.button.innerText = "[---]";
         _this.button.addEventListener("click", function () {
             console.log("FUNCTION NOT IMPLEMENTED!");
         });
@@ -204,7 +206,6 @@ var SuitStack = /** @class */ (function (_super) {
             return card;
         };
         _this.updateStack = function updateStack() {
-            this.container.innerHTML = this.defaultHTML;
             if (this.cards.length > 0) {
                 this.button.innerText = this.cards[0].button;
             }
@@ -269,10 +270,10 @@ var DrawStack = /** @class */ (function (_super) {
             draw.cards.push(new Card(i, draw));
         }
         draw.cards.sort(function (a) { return 0.5 - Math.random(); });
-        for (var i_6 = 0; i_6 < 7; i_6++) {
-            for (var j = 0; j < i_6 + 1; j++) {
+        for (var i_7 = 0; i_7 < 7; i_7++) {
+            for (var j = 0; j < i_7 + 1; j++) {
                 var card = draw.cards.shift();
-                mains[i_6].addCard(card);
+                mains[i_7].addCard(card);
             }
         }
     };
@@ -314,12 +315,7 @@ function selectStack(stack, position) {
             card = selectedStack.removeCard();
             stack.addCard(card);
             var card = selectedStack.cards.shift();
-            // card.isRevealed = true;
             stack.cards.unshift(card);
-            // let toReveal = selectedStack.cards[0];
-            // if (toReveal != undefined) {
-            //   toReveal.isRevealed = true;
-            // }
         }
         else {
             console.warn("Invalid Move");
@@ -337,8 +333,6 @@ function reset() {
     suits.forEach(function (stack) {
         stack.reset();
     });
-    draw.dealCards();
-    updateDisplay();
 }
 // GAMEPLAY
 // Variables
@@ -357,6 +351,7 @@ for (var i = 0; i < 7; i++) {
 var mains = temp;
 newGameButton.addEventListener("click", function () {
     reset();
+    draw.dealCards();
     updateDisplay();
 });
 // Variables
