@@ -215,6 +215,10 @@ class SuitStack extends Stack {
     this.container.appendChild(this.button);
     this.button.innerText = "[---]";
 
+    if (this.suit == 0 || this.suit == 1) {
+      this.button.style.color = "red";
+    }
+
     this.button.addEventListener("click", () => {
       console.log("FUNCTION NOT IMPLEMENTED!");
     });

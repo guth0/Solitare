@@ -193,6 +193,9 @@ var SuitStack = /** @class */ (function (_super) {
         _this.container.innerHTML = _this.defaultHTML;
         _this.container.appendChild(_this.button);
         _this.button.innerText = "[---]";
+        if (_this.suit == 0 || _this.suit == 1) {
+            _this.button.style.color = "red";
+        }
         _this.button.addEventListener("click", function () {
             console.log("FUNCTION NOT IMPLEMENTED!");
         });
