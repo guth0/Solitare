@@ -21,16 +21,10 @@
 //
 // TODO:
 //   FIX:
-//     updateDisplay()
-//     selectStack()
+//     selectStack() !! I think it ALWAYS cycles the deck
 //     isValid()
-//     reset()
-//     MainStack.removeCard()
 //   IMPLIMENT:
 //     moveCard()
-//   REMOVE:
-//     Card.revealCard()
-//     Card.hideCard()
 
 // HTML elements
 const newGameButton: HTMLButtonElement =
@@ -79,6 +73,10 @@ class Card {
     } else {
       this.button.style.color = "black";
     }
+
+    this.button.addEventListener("click", () => {
+      this.stack.selectCard(this);
+    });
   }
 
   displayCard(): string {
@@ -91,9 +89,6 @@ class Card {
 }
 
 class Stack {
-  selectCard(card: Card) {
-    throw new Error("Method not implemented.");
-  }
   container: HTMLDivElement;
   cards: Card[] = [];
   addCard: Function;
@@ -102,6 +97,7 @@ class Stack {
   isValid: Function;
   reset: Function;
   update: Function;
+  selectCard: Function;
 
   constructor(container: HTMLDivElement) {
     this.container = container;
@@ -127,9 +123,7 @@ class MainStack extends Stack {
       button.innerText = card.display;
       this.container.appendChild(button);
 
-      button.addEventListener("click", () => {
-        console.warn("FUNCTION NOT IMPLEMENTED!");
-      });
+      card.stack = this;
     };
 
     this.removeCard = function removeCard(position?: number): Card[] {
@@ -160,9 +154,6 @@ class MainStack extends Stack {
       for (let i = this.cards.length - 1; i >= numHidden; i--) {
         let card = this.cards[i];
         this.container.appendChild(card.button);
-        card.button.addEventListener("click", () => {
-          console.log("FUNCTION NOT IMPLIMENTED");
-        });
       }
     };
 
@@ -178,23 +169,8 @@ class MainStack extends Stack {
       this.container.innerHTML = "";
     };
 
-    this.update = function update(): void {
-      this.container.innerHTML = "";
-      if (this.numHidden != 0) {
-        for (let i = 0; i < numHidden; i++) {
-          this.container.innerText = this.container.innerText + "[---] ";
-        }
-      }
-
-      for (let i = this.cards.length - 1; i > this.numHidden - 1; i--) {
-        let card: Card = this.cards[i];
-        let button = document.createElement("button");
-        this.container.appendChild(button);
-        button.innerText = card.display;
-        button.onclick = function () {
-          console.log("CLICK NOT IMPLIED");
-        };
-      }
+    this.selectCard = function selectCard(card: Card): void {
+      selectStack(this, card.position);
     };
   }
   revealCard(): void {
@@ -220,12 +196,13 @@ class SuitStack extends Stack {
     }
 
     this.button.addEventListener("click", () => {
-      console.log("FUNCTION NOT IMPLEMENTED!");
+      selectStack(this);
     });
 
     this.addCard = function addCard(card: Card): void {
       this.cards.unshift(card);
       this.button.innerText = card.display;
+      card.stack = this;
     };
 
     this.removeCard = function removeCard(): Card {
@@ -250,6 +227,9 @@ class SuitStack extends Stack {
       this.button.innerText = "[---]";
       this.cards = [];
     };
+    this.selectCard = function selectCard(card: Card): void {
+      console.warn("YOU SHOULD NOT SEE THIS");
+    };
   }
 }
 
@@ -264,7 +244,7 @@ class DrawStack extends Stack {
     this.button.innerText = "[---]";
 
     this.button.addEventListener("click", () => {
-      console.log("FUNCTION NOT IMPLEMENTED!");
+      selectStack(this);
     });
 
     this.addCard = function isValid(): boolean {
@@ -290,6 +270,10 @@ class DrawStack extends Stack {
     this.reset = function reset(): void {
       this.button.innerText = "[---]";
       this.cards = [];
+    };
+
+    this.selectCard = function () {
+      console.warn("YOU SHOULD NOT SEE THIS");
     };
   }
 
