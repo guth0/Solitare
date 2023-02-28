@@ -21,10 +21,9 @@
 //
 // TODO:
 //   FIX:
-//     selectStack() !! I think it ALWAYS cycles the deck
-//     isValid()
+//     MainStack.removeCard();
 //   IMPLIMENT:
-//     moveCard()
+//     ____
 
 // HTML elements
 const newGameButton: HTMLButtonElement =
@@ -126,20 +125,10 @@ class MainStack extends Stack {
       card.stack = this;
     };
 
-    this.removeCard = function removeCard(position?: number): Card[] {
-      if (position == undefined) {
-        position = 1;
-      }
-      this.container.removeChild(this.container.lastChild!);
-      let removedCards: Card[] = [];
-      for (let i = 0; i < position; i++) {
-        removedCards.unshift(this.cards.shift()!);
-      }
-      if (this.cards[0].isRevealed == false) {
-        this.cards[0].revealCard();
-      }
+    this.removeCard = function removeCard(): Card {
+      let card: Card = this.cards.shift()!;
       this.numHidden -= 1;
-      return removedCards;
+      return card;
     };
 
     this.updateStack = function updateStack(): void {
@@ -147,12 +136,13 @@ class MainStack extends Stack {
 
       if (this.numHidden != 0) {
         for (let i = 0; i < numHidden; i++) {
-          this.container.innerText = this.container.innerText + "[---] ";
+          this.container.innerText += "[---] ";
         }
       }
 
-      for (let i = this.cards.length - 1; i >= numHidden; i--) {
+      for (let i = this.cards.length - numHidden - 1; i >= 0; i--) {
         let card = this.cards[i];
+        console.log(`${card} -- ${i}`);
         this.container.appendChild(card.button);
       }
     };
@@ -186,6 +176,7 @@ class SuitStack extends Stack {
   constructor(container: HTMLDivElement, suit: number) {
     super(container);
     this.suit = suit;
+    console.log(`suit: ${this.suit} | ${SUITS[this.suit]}`);
     this.defaultHTML = `${SUITS[this.suit]}: `;
     this.container.innerHTML = this.defaultHTML;
     this.container.appendChild(this.button);
@@ -220,6 +211,15 @@ class SuitStack extends Stack {
     };
 
     this.isValid = function isValid(card: Card): boolean {
+      console.log(
+        `card(${card.suit}) == stack(${this.suit}) = ${card.suit == this.suit}`
+      );
+      console.log(
+        `card(${card.number}) == stack(${this.cards.length}) = ${
+          card.number == this.cards.length
+        }`
+      );
+
       return card.suit == this.suit && card.number == this.cards.length;
     };
 
@@ -247,7 +247,12 @@ class DrawStack extends Stack {
       selectStack(this);
     });
 
-    this.addCard = function isValid(): boolean {
+    this.isValid = function isValid(): boolean {
+      console.warn("Cards Cannot be moved into the deck!");
+      return false;
+    };
+
+    this.addCard = function addCard(): boolean {
       console.warn("Cards Cannot be moved into the deck!");
       return false;
     };
@@ -322,8 +327,8 @@ function selectStack(stack: Stack, position?: number): void {
 
     console.log("BEING SELECTED");
     return;
-  } else if (typeof stack == typeof deckStack) {
-    if (typeof selectedStack == typeof deckStack) {
+  } else if (stack instanceof DrawStack) {
+    if (selectedStack instanceof DrawStack) {
       draw.cycleDeck(); // Remove ! and fix for when draw stack is empty
     } else {
       console.warn("Cannot Move Card to Deck!");
@@ -341,8 +346,11 @@ function selectStack(stack: Stack, position?: number): void {
       var card: Card | undefined = selectedStack.cards.shift()!;
       stack.cards.unshift(card);
     } else {
-      console.warn("Invalid Move");
-    }
+      if (selectedStack.cards.length < 0)
+        console.warn("Invalid Move: No cards in Stack!");
+      if (stack.isValid(selectedStack.cards[0]) == false)
+        console.warn("Invalid Move: Incorrect Card!");
+    } // May present problems
   }
   console.log("BEING UNDEFINED");
   selectedStack = undefined;
@@ -366,7 +374,8 @@ let temp: any = [];
 
 for (var i = 0; i < 4; i++) {
   let element = suitStacks[i];
-  temp.push(new SuitStack(element, i));
+  let stack = new SuitStack(element, i);
+  temp.push(stack);
 }
 
 const suits: SuitStack[] = temp;

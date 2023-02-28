@@ -114,30 +114,21 @@ var MainStack = /** @class */ (function (_super) {
             this.container.appendChild(button);
             card.stack = this;
         };
-        _this.removeCard = function removeCard(position) {
-            if (position == undefined) {
-                position = 1;
-            }
-            this.container.removeChild(this.container.lastChild);
-            var removedCards = [];
-            for (var i_2 = 0; i_2 < position; i_2++) {
-                removedCards.unshift(this.cards.shift());
-            }
-            if (this.cards[0].isRevealed == false) {
-                this.cards[0].revealCard();
-            }
+        _this.removeCard = function removeCard() {
+            var card = this.cards.shift();
             this.numHidden -= 1;
-            return removedCards;
+            return card;
         };
         _this.updateStack = function updateStack() {
             this.container.innerHTML = "";
             if (this.numHidden != 0) {
-                for (var i_3 = 0; i_3 < numHidden; i_3++) {
-                    this.container.innerText = this.container.innerText + "[---] ";
+                for (var i_2 = 0; i_2 < numHidden; i_2++) {
+                    this.container.innerText += "[---] ";
                 }
             }
-            for (var i_4 = this.cards.length - 1; i_4 >= numHidden; i_4--) {
-                var card = this.cards[i_4];
+            for (var i_3 = this.cards.length - numHidden - 1; i_3 >= 0; i_3--) {
+                var card = this.cards[i_3];
+                console.log("".concat(card, " -- ").concat(i_3));
                 this.container.appendChild(card.button);
             }
         };
@@ -165,6 +156,7 @@ var SuitStack = /** @class */ (function (_super) {
         var _this = _super.call(this, container) || this;
         _this.button = document.createElement("button");
         _this.suit = suit;
+        console.log("suit: ".concat(_this.suit, " | ").concat(SUITS[_this.suit]));
         _this.defaultHTML = "".concat(SUITS[_this.suit], ": ");
         _this.container.innerHTML = _this.defaultHTML;
         _this.container.appendChild(_this.button);
@@ -194,6 +186,8 @@ var SuitStack = /** @class */ (function (_super) {
             }
         };
         _this.isValid = function isValid(card) {
+            console.log("card(".concat(card.suit, ") == stack(").concat(this.suit, ") = ").concat(card.suit == this.suit));
+            console.log("card(".concat(card.number, ") == stack(").concat(this.cards.length, ") = ").concat(card.number == this.cards.length));
             return card.suit == this.suit && card.number == this.cards.length;
         };
         _this.reset = function reset() {
@@ -219,7 +213,11 @@ var DrawStack = /** @class */ (function (_super) {
         _this.button.addEventListener("click", function () {
             selectStack(_this);
         });
-        _this.addCard = function isValid() {
+        _this.isValid = function isValid() {
+            console.warn("Cards Cannot be moved into the deck!");
+            return false;
+        };
+        _this.addCard = function addCard() {
             console.warn("Cards Cannot be moved into the deck!");
             return false;
         };
@@ -256,10 +254,10 @@ var DrawStack = /** @class */ (function (_super) {
             draw.cards.push(new Card(i, draw));
         }
         draw.cards.sort(function (a) { return 0.5 - Math.random(); });
-        for (var i_5 = 0; i_5 < 7; i_5++) {
-            for (var j = 0; j < i_5 + 1; j++) {
+        for (var i_4 = 0; i_4 < 7; i_4++) {
+            for (var j = 0; j < i_4 + 1; j++) {
                 var card = draw.cards.shift();
-                mains[i_5].addCard(card);
+                mains[i_4].addCard(card);
             }
         }
     };
@@ -286,8 +284,8 @@ function selectStack(stack, position) {
         console.log("BEING SELECTED");
         return;
     }
-    else if (typeof stack == typeof deckStack) {
-        if (typeof selectedStack == typeof deckStack) {
+    else if (stack instanceof DrawStack) {
+        if (selectedStack instanceof DrawStack) {
             draw.cycleDeck(); // Remove ! and fix for when draw stack is empty
         }
         else {
@@ -304,8 +302,11 @@ function selectStack(stack, position) {
             stack.cards.unshift(card);
         }
         else {
-            console.warn("Invalid Move");
-        }
+            if (selectedStack.cards.length < 0)
+                console.warn("Invalid Move: No cards in Stack!");
+            if (stack.isValid(selectedStack.cards[0]) == false)
+                console.warn("Invalid Move: Incorrect Card!");
+        } // May present problems
     }
     console.log("BEING UNDEFINED");
     selectedStack = undefined;
@@ -326,7 +327,8 @@ var draw = new DrawStack(deckStack);
 var temp = [];
 for (var i = 0; i < 4; i++) {
     var element = suitStacks[i];
-    temp.push(new SuitStack(element, i));
+    var stack = new SuitStack(element, i);
+    temp.push(stack);
 }
 var suits = temp;
 temp = [];
