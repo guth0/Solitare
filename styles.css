@@ -14,3 +14,11 @@
     color: red
 }
 
+.deckContainer .Red {
+    color: red
+}
+
+* .selected {
+    border: 2px solid grey
+}
+

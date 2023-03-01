@@ -21,10 +21,16 @@
 //
 // TODO:
 //   FIX:
-//     selectStack() !! I think it ALWAYS cycles the deck
-//     isValid()
+//     MainStack.removeCard()
+//     MainStack.isVaid()
 //   IMPLIMENT:
-//     moveCard()
+//     ____
+// Moves:
+//   [] Remove from Main
+//   [X] Add to Main
+//   [X] Remove from Draw
+//   [?] Remove from Suit
+//   [X] Add to Suit
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -61,20 +67,15 @@ var Card = /** @class */ (function () {
         this.number = position % 13;
         this.display = this.displayCard();
         if (this.suit == 0 || this.suit == 1) {
-            this.color = 0;
+            this.color = "red";
         }
         else {
-            this.color = 1;
+            this.color = "black";
         } // 0 = red, 1 = black
         this.stack = stack;
         this.button = document.createElement("button");
         this.button.innerText = this.display;
-        if (this.color == 0) {
-            this.button.style.color = "red";
-        }
-        else {
-            this.button.style.color = "black";
-        }
+        this.button.style.color = this.color;
         this.button.addEventListener("click", function () {
             _this.stack.selectCard(_this);
         });
@@ -109,9 +110,6 @@ var MainStack = /** @class */ (function (_super) {
         _this.addCard = function addCard(card) {
             card.position = this.cards.length;
             this.cards.unshift(card);
-            var button = document.createElement("button");
-            button.innerText = card.display;
-            this.container.appendChild(button);
             card.stack = this;
         };
         _this.removeCard = function removeCard() {
@@ -121,18 +119,17 @@ var MainStack = /** @class */ (function (_super) {
         };
         _this.updateStack = function updateStack() {
             this.container.innerHTML = "";
-            if (this.numHidden != 0) {
-                for (var i_2 = 0; i_2 < numHidden; i_2++) {
-                    this.container.innerText += "[---] ";
-                }
+            for (var i = 0; i < numHidden; i++) {
+                this.container.innerText += "[---] ";
             }
-            for (var i_3 = this.cards.length - numHidden - 1; i_3 >= 0; i_3--) {
-                var card = this.cards[i_3];
-                console.log("".concat(card, " -- ").concat(i_3));
+            for (var i = this.cards.length - numHidden - 1; i >= 0; i--) {
+                var card = this.cards[i];
                 this.container.appendChild(card.button);
             }
         };
         _this.isValid = function isValid(card) {
+            console.log("Moved Card: ".concat(card.color, " != Top Card: ").concat(this.cards[0].color, " = ").concat(card.color != this.cards[0].color));
+            console.log("Moved Card: ".concat(card.number, " == Top Card: ").concat(this.cards[0].number, " - 1 = ").concat(card.number == this.cards[0].number - 1));
             return (card.color != this.cards[0].color &&
                 card.number == this.cards[0].number - 1);
         };
@@ -156,7 +153,6 @@ var SuitStack = /** @class */ (function (_super) {
         var _this = _super.call(this, container) || this;
         _this.button = document.createElement("button");
         _this.suit = suit;
-        console.log("suit: ".concat(_this.suit, " | ").concat(SUITS[_this.suit]));
         _this.defaultHTML = "".concat(SUITS[_this.suit], ": ");
         _this.container.innerHTML = _this.defaultHTML;
         _this.container.appendChild(_this.button);
@@ -179,7 +175,7 @@ var SuitStack = /** @class */ (function (_super) {
         };
         _this.updateStack = function updateStack() {
             if (this.cards.length > 0) {
-                this.button.innerText = this.cards[0].button;
+                this.button.innerText = this.cards[0].display;
             }
             else {
                 this.button.innerText = "[---]"; // THERE IS NO BUTTON TO HIT ON THIS SUIT STACKS
@@ -226,7 +222,7 @@ var DrawStack = /** @class */ (function (_super) {
             this.button.innerText = this.cards[0].display;
             return card;
         };
-        _this.updateStack = function updateDeck() {
+        _this.updateStack = function updateStack() {
             var topCard = this.cards[0];
             if (topCard != undefined) {
                 this.button.innerText = topCard.display;
@@ -234,6 +230,7 @@ var DrawStack = /** @class */ (function (_super) {
             else {
                 this.button.innerText = "[---]";
             }
+            this.button.style.color = this.cards[0].color;
         };
         _this.reset = function reset() {
             this.button.innerText = "[---]";
@@ -246,7 +243,7 @@ var DrawStack = /** @class */ (function (_super) {
     }
     DrawStack.prototype.cycleDeck = function () {
         this.cards.push(this.cards.shift());
-        this.button.innerText = this.cards[0].display;
+        this.updateStack();
     };
     DrawStack.prototype.dealCards = function () {
         this.cards = [];
@@ -254,10 +251,10 @@ var DrawStack = /** @class */ (function (_super) {
             draw.cards.push(new Card(i, draw));
         }
         draw.cards.sort(function (a) { return 0.5 - Math.random(); });
-        for (var i_4 = 0; i_4 < 7; i_4++) {
-            for (var j = 0; j < i_4 + 1; j++) {
+        for (var i_2 = 0; i_2 < 7; i_2++) {
+            for (var j = 0; j < i_2 + 1; j++) {
                 var card = draw.cards.shift();
-                mains[i_4].addCard(card);
+                mains[i_2].addCard(card);
             }
         }
     };
@@ -276,12 +273,18 @@ function updateDisplay() {
 // GAMEPLAY
 var selectedStack = undefined;
 var cardPosition = undefined;
-function moveCard(stackTo, stackFrom, position) { }
+function moveCard(stackTo, stackFrom, position) {
+    for (var i_3 = 0; i_3 < stackFrom.cards.length - position; i_3++) {
+        var card = stackFrom.removeCard();
+        stackTo.addCard(card);
+    }
+}
 function selectStack(stack, position) {
+    if (position === void 0) { position = stack.cards.length - 1; }
     if (selectedStack == undefined) {
         selectedStack = stack;
+        selectedStack.container.classList.add("selected");
         cardPosition = position;
-        console.log("BEING SELECTED");
         return;
     }
     else if (stack instanceof DrawStack) {
@@ -292,25 +295,21 @@ function selectStack(stack, position) {
             console.warn("Cannot Move Card to Deck!");
         }
     }
-    else {
-        console.log("CHECKING VALIDITY");
+    else if (selectedStack != stack) {
         if (selectedStack.cards.length > 0 &&
-            stack.isValid(selectedStack.cards[0])) {
-            card = selectedStack.removeCard();
-            stack.addCard(card);
-            var card = selectedStack.cards.shift();
-            stack.cards.unshift(card);
+            stack.isValid(selectedStack.cards[stack.cards.length - cardPosition + 1])) {
+            moveCard(stack, selectedStack, cardPosition);
         }
         else {
             if (selectedStack.cards.length < 0)
                 console.warn("Invalid Move: No cards in Stack!");
-            if (stack.isValid(selectedStack.cards[0]) == false)
+            if (stack.isValid(stack.isValid(selectedStack.cards[stack.cards.length - cardPosition + 1])))
                 console.warn("Invalid Move: Incorrect Card!");
         } // May present problems
     }
-    console.log("BEING UNDEFINED");
+    selectedStack.container.classList.remove("selected");
     selectedStack = undefined;
-    // updateDisplay();
+    updateDisplay();
 }
 function reset() {
     draw.reset();
@@ -320,6 +319,10 @@ function reset() {
     suits.forEach(function (stack) {
         stack.reset();
     });
+    if (selectedStack != undefined) {
+        selectedStack.container.classList.remove("selected");
+        selectedStack = undefined;
+    }
 }
 // GAMEPLAY
 // Variables

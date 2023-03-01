@@ -21,9 +21,16 @@
 //
 // TODO:
 //   FIX:
-//     MainStack.removeCard();
+//     MainStack.removeCard()
+//     MainStack.isVaid()
 //   IMPLIMENT:
 //     ____
+// Moves:
+//   [] Remove from Main
+//   [X] Add to Main
+//   [X] Remove from Draw
+//   [?] Remove from Suit
+//   [X] Add to Suit
 
 // HTML elements
 const newGameButton: HTMLButtonElement =
@@ -47,7 +54,7 @@ const CARDS = {
 class Card {
   suit: number;
   number: number;
-  color: number;
+  color: "red" | "black";
   display: string;
   stack: Stack;
   position: number;
@@ -59,19 +66,15 @@ class Card {
     this.display = this.displayCard();
 
     if (this.suit == 0 || this.suit == 1) {
-      this.color = 0;
+      this.color = "red";
     } else {
-      this.color = 1;
+      this.color = "black";
     } // 0 = red, 1 = black
     this.stack = stack;
 
     this.button = document.createElement("button");
     this.button.innerText = this.display;
-    if (this.color == 0) {
-      this.button.style.color = "red";
-    } else {
-      this.button.style.color = "black";
-    }
+    this.button.style.color = this.color;
 
     this.button.addEventListener("click", () => {
       this.stack.selectCard(this);
@@ -118,10 +121,6 @@ class MainStack extends Stack {
     this.addCard = function addCard(card: Card): void {
       card.position = this.cards.length;
       this.cards.unshift(card);
-      let button = document.createElement("button");
-      button.innerText = card.display;
-      this.container.appendChild(button);
-
       card.stack = this;
     };
 
@@ -134,20 +133,28 @@ class MainStack extends Stack {
     this.updateStack = function updateStack(): void {
       this.container.innerHTML = "";
 
-      if (this.numHidden != 0) {
-        for (let i = 0; i < numHidden; i++) {
-          this.container.innerText += "[---] ";
-        }
+      for (var i = 0; i < numHidden; i++) {
+        this.container.innerText += "[---] ";
       }
 
-      for (let i = this.cards.length - numHidden - 1; i >= 0; i--) {
+      for (var i = this.cards.length - numHidden - 1; i >= 0; i--) {
         let card = this.cards[i];
-        console.log(`${card} -- ${i}`);
         this.container.appendChild(card.button);
       }
     };
 
     this.isValid = function isValid(card: Card): boolean {
+      console.log(
+        `Moved Card: ${card.color} != Top Card: ${this.cards[0].color} = ${
+          card.color != this.cards[0].color
+        }`
+      );
+      console.log(
+        `Moved Card: ${card.number} == Top Card: ${
+          this.cards[0].number
+        } - 1 = ${card.number == this.cards[0].number - 1}`
+      );
+
       return (
         card.color != this.cards[0].color &&
         card.number == this.cards[0].number - 1
@@ -176,7 +183,6 @@ class SuitStack extends Stack {
   constructor(container: HTMLDivElement, suit: number) {
     super(container);
     this.suit = suit;
-    console.log(`suit: ${this.suit} | ${SUITS[this.suit]}`);
     this.defaultHTML = `${SUITS[this.suit]}: `;
     this.container.innerHTML = this.defaultHTML;
     this.container.appendChild(this.button);
@@ -204,7 +210,7 @@ class SuitStack extends Stack {
 
     this.updateStack = function updateStack(): void {
       if (this.cards.length > 0) {
-        this.button.innerText = this.cards[0].button;
+        this.button.innerText = this.cards[0].display;
       } else {
         this.button.innerText = "[---]"; // THERE IS NO BUTTON TO HIT ON THIS SUIT STACKS
       }
@@ -263,13 +269,14 @@ class DrawStack extends Stack {
       return card;
     };
 
-    this.updateStack = function updateDeck(): void {
+    this.updateStack = function updateStack(): void {
       let topCard = this.cards[0];
       if (topCard != undefined) {
         this.button.innerText = topCard.display;
       } else {
         this.button.innerText = "[---]";
       }
+      this.button.style.color = this.cards[0].color;
     };
 
     this.reset = function reset(): void {
@@ -284,7 +291,7 @@ class DrawStack extends Stack {
 
   cycleDeck(): void {
     this.cards.push(this.cards.shift()!);
-    this.button.innerText = this.cards[0].display;
+    this.updateStack();
   }
 
   dealCards(): void {
@@ -318,14 +325,21 @@ function updateDisplay(): void {
 var selectedStack: Stack | undefined = undefined;
 var cardPosition: number | undefined = undefined;
 
-function moveCard(stackTo: Stack, stackFrom: Stack, position: number): void {}
+function moveCard(stackTo: Stack, stackFrom: Stack, position: number): void {
+  for (let i = 0; i < stackFrom.cards.length - position; i++) {
+    let card = stackFrom.removeCard();
+    stackTo.addCard(card);
+  }
+}
 
-function selectStack(stack: Stack, position?: number): void {
+function selectStack(
+  stack: Stack,
+  position: number = stack.cards.length - 1
+): void {
   if (selectedStack == undefined) {
     selectedStack = stack;
+    selectedStack.container.classList.add("selected");
     cardPosition = position;
-
-    console.log("BEING SELECTED");
     return;
   } else if (stack instanceof DrawStack) {
     if (selectedStack instanceof DrawStack) {
@@ -333,28 +347,28 @@ function selectStack(stack: Stack, position?: number): void {
     } else {
       console.warn("Cannot Move Card to Deck!");
     }
-  } else {
-    console.log("CHECKING VALIDITY");
-
+  } else if (selectedStack != stack) {
     if (
       selectedStack.cards.length > 0 &&
-      stack.isValid(selectedStack.cards[0])
+      stack.isValid(selectedStack.cards[stack.cards.length - cardPosition! + 1])
     ) {
-      card = selectedStack.removeCard();
-      stack.addCard(card);
-
-      var card: Card | undefined = selectedStack.cards.shift()!;
-      stack.cards.unshift(card);
+      moveCard(stack, selectedStack, cardPosition!);
     } else {
       if (selectedStack.cards.length < 0)
         console.warn("Invalid Move: No cards in Stack!");
-      if (stack.isValid(selectedStack.cards[0]) == false)
+      if (
+        stack.isValid(
+          stack.isValid(
+            selectedStack.cards[stack.cards.length - cardPosition! + 1]
+          )
+        )
+      )
         console.warn("Invalid Move: Incorrect Card!");
     } // May present problems
   }
-  console.log("BEING UNDEFINED");
+  selectedStack.container.classList.remove("selected");
   selectedStack = undefined;
-  // updateDisplay();
+  updateDisplay();
 }
 function reset() {
   draw.reset();
@@ -364,6 +378,10 @@ function reset() {
   suits.forEach((stack: SuitStack) => {
     stack.reset();
   });
+  if (selectedStack != undefined) {
+    selectedStack.container.classList.remove("selected");
+    selectedStack = undefined;
+  }
 }
 // GAMEPLAY
 
