@@ -299,19 +299,19 @@ function selectStack(stack, position) {
         }
     }
     else if (selectedStack != stack) {
+        var index = selectedStack.cards.length - cardPosition - 1;
         if (selectedStack.cards.length > 0 &&
-            stack.isValid(selectedStack.cards[stack.cards.length - cardPosition + 1])) {
-            console.log("Card at ".concat(stack.cards.length - cardPosition + 1, " is: ").concat(selectedStack.cards[stack.cards.length - cardPosition + 1].display));
+            stack.isValid(selectedStack.cards[index])) {
             moveCard(stack, selectedStack, cardPosition);
         }
         else {
             if (selectedStack.cards.length < 0)
                 console.warn("Invalid Move: No cards in Stack!");
-            if (stack.isValid(selectedStack.cards[stack.cards.length - cardPosition + 1]))
+            if (stack.isValid(selectedStack.cards[index]))
                 console.warn("Invalid Move: Incorrect Card!");
         } // May present problems
     }
-    console.log("Being underfined");
+    console.log("Being undefined!");
     selectedStack.container.classList.remove("selected");
     selectedStack = undefined;
     updateDisplay();

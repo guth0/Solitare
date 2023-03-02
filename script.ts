@@ -351,28 +351,20 @@ function selectStack(
       console.warn("Cannot Move Card to Deck!");
     }
   } else if (selectedStack != stack) {
+    let index = selectedStack.cards.length - cardPosition! - 1;
     if (
       selectedStack.cards.length > 0 &&
-      stack.isValid(selectedStack.cards[stack.cards.length - cardPosition! + 1])
+      stack.isValid(selectedStack.cards[index])
     ) {
-      console.log(
-        `Card at ${stack.cards.length - cardPosition! + 1} is: ${
-          selectedStack.cards[stack.cards.length - cardPosition! + 1].display
-        }`
-      );
       moveCard(stack, selectedStack, cardPosition!);
     } else {
       if (selectedStack.cards.length < 0)
         console.warn("Invalid Move: No cards in Stack!");
-      if (
-        stack.isValid(
-          selectedStack.cards[stack.cards.length - cardPosition! + 1]
-        )
-      )
+      if (stack.isValid(selectedStack.cards[index]))
         console.warn("Invalid Move: Incorrect Card!");
     } // May present problems
   }
-  console.log("Being underfined");
+  console.log("Being undefined!");
   selectedStack.container.classList.remove("selected");
   selectedStack = undefined;
   updateDisplay();
