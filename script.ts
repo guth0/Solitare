@@ -78,6 +78,7 @@ class Card {
 
     this.button.addEventListener("click", () => {
       this.stack.selectCard(this);
+      console.log(this.display);
     });
   }
 
@@ -144,6 +145,7 @@ class MainStack extends Stack {
     };
 
     this.isValid = function isValid(card: Card): boolean {
+      console.log(`Card: ${card}`);
       console.log(
         `Moved Card: ${card.color} != Top Card: ${this.cards[0].color} = ${
           card.color != this.cards[0].color
@@ -217,6 +219,7 @@ class SuitStack extends Stack {
     };
 
     this.isValid = function isValid(card: Card): boolean {
+      console.log(`Card: ${card}`);
       console.log(
         `card(${card.suit}) == stack(${this.suit}) = ${card.suit == this.suit}`
       );
@@ -352,20 +355,24 @@ function selectStack(
       selectedStack.cards.length > 0 &&
       stack.isValid(selectedStack.cards[stack.cards.length - cardPosition! + 1])
     ) {
+      console.log(
+        `Card at ${stack.cards.length - cardPosition! + 1} is: ${
+          selectedStack.cards[stack.cards.length - cardPosition! + 1].display
+        }`
+      );
       moveCard(stack, selectedStack, cardPosition!);
     } else {
       if (selectedStack.cards.length < 0)
         console.warn("Invalid Move: No cards in Stack!");
       if (
         stack.isValid(
-          stack.isValid(
-            selectedStack.cards[stack.cards.length - cardPosition! + 1]
-          )
+          selectedStack.cards[stack.cards.length - cardPosition! + 1]
         )
       )
         console.warn("Invalid Move: Incorrect Card!");
     } // May present problems
   }
+  console.log("Being underfined");
   selectedStack.container.classList.remove("selected");
   selectedStack = undefined;
   updateDisplay();
