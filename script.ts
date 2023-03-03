@@ -44,6 +44,7 @@ const deckStack: HTMLDivElement = document.querySelector("[data-deck]")!;
 
 // DISPLAY
 const SUITS = ["H", "D", "S", "C"];
+const STACK_SUITS = ["HEARTS", "DIAMONDS", "SPADES", "CLUBS"];
 const CARDS = {
   0: "A",
   10: "J",
@@ -180,41 +181,41 @@ class MainStack extends Stack {
 class SuitStack extends Stack {
   suit: number | undefined;
   defaultHTML: string;
-  button: HTMLButtonElement = document.createElement("button");
 
   constructor(container: HTMLDivElement, suit: number) {
     super(container);
     this.suit = suit;
-    this.defaultHTML = `${SUITS[this.suit]}: `;
-    this.container.innerHTML = this.defaultHTML;
-    this.container.appendChild(this.button);
-    this.button.innerText = "[---]";
+    this.defaultHTML = `${STACK_SUITS[this.suit]}<br>`;
+    this.container.innerHTML = this.defaultHTML + "[---]";
 
     if (this.suit == 0 || this.suit == 1) {
-      this.button.style.color = "red";
+      this.container.classList.add("red");
+    } else {
+      this.container.classList.add("black");
     }
 
-    this.button.addEventListener("click", () => {
+    this.container.addEventListener("click", () => {
       selectStack(this);
     });
 
     this.addCard = function addCard(card: Card): void {
       this.cards.unshift(card);
-      this.button.innerText = card.display;
+      this.container.innerHTML = this.defaultHTML + card.display;
       card.stack = this;
     };
 
     this.removeCard = function removeCard(): Card {
       let card = this.cards.shift()!;
-      this.button.innerText = this.cards[0].display;
+      this.container.innerHTML = this.defaultHTML + this.cards[0].display;
       return card;
     };
 
     this.updateStack = function updateStack(): void {
+      this.container.innerHTML = this.defaultHTML;
       if (this.cards.length > 0) {
-        this.button.innerText = this.cards[0].display;
+        this.container.innerHTML += this.cards[0].display;
       } else {
-        this.button.innerText = "[---]"; // THERE IS NO BUTTON TO HIT ON THIS SUIT STACKS
+        this.container.innerHTML += "[---]"; // THERE IS NO BUTTON TO HIT ON THIS SUIT STACKS
       }
     };
 
@@ -233,26 +234,23 @@ class SuitStack extends Stack {
     };
 
     this.reset = function reset(): void {
-      this.button.innerText = "[---]";
+      this.container.innerHTML = this.defaultHTML + "[---]";
       this.cards = [];
     };
-    this.selectCard = function selectCard(card: Card): void {
+    this.selectCard = function () {
       console.warn("YOU SHOULD NOT SEE THIS");
     };
   }
 }
 
 class DrawStack extends Stack {
-  defaultHTML: string = "Deck: ";
-  button: HTMLButtonElement = document.createElement("button");
+  defaultHTML: string = "Deck<br>";
 
   constructor(container: HTMLDivElement) {
     super(container);
-    this.container.innerHTML = this.defaultHTML;
-    this.container.appendChild(this.button);
-    this.button.innerText = "[---]";
+    this.container.innerHTML = this.defaultHTML + "[---]";
 
-    this.button.addEventListener("click", () => {
+    this.container.addEventListener("click", () => {
       selectStack(this);
     });
 
@@ -268,22 +266,27 @@ class DrawStack extends Stack {
 
     this.removeCard = function removeCard(): Card {
       let card = this.cards.shift()!; // MIGHT NOT ALWAYS BE NON-NULL
-      this.button.innerText = this.cards[0].display;
+      this.container.innerHTML = this.cards[0].display;
       return card;
     };
 
     this.updateStack = function updateStack(): void {
       let topCard = this.cards[0];
+      this.container.innerHTML = this.defaultHTML;
       if (topCard != undefined) {
-        this.button.innerText = topCard.display;
+        this.container.innerHTML += topCard.display;
       } else {
-        this.button.innerText = "[---]";
+        this.container.innerHTML += "[---]";
       }
-      this.button.style.color = this.cards[0].color;
+      if (this.cards[0].color == "red") {
+        this.container.classList.add("red");
+      } else {
+        this.container.classList.remove("red");
+      }
     };
 
     this.reset = function reset(): void {
-      this.button.innerText = "[---]";
+      this.container.innerHTML = "";
       this.cards = [];
     };
 

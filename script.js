@@ -54,6 +54,7 @@ var deckStack = document.querySelector("[data-deck]");
 // HTML elements
 // DISPLAY
 var SUITS = ["H", "D", "S", "C"];
+var STACK_SUITS = ["HEARTS", "DIAMONDS", "SPADES", "CLUBS"];
 var CARDS = {
     0: "A",
     10: "J",
@@ -153,34 +154,35 @@ var SuitStack = /** @class */ (function (_super) {
     __extends(SuitStack, _super);
     function SuitStack(container, suit) {
         var _this = _super.call(this, container) || this;
-        _this.button = document.createElement("button");
         _this.suit = suit;
-        _this.defaultHTML = "".concat(SUITS[_this.suit], ": ");
-        _this.container.innerHTML = _this.defaultHTML;
-        _this.container.appendChild(_this.button);
-        _this.button.innerText = "[---]";
+        _this.defaultHTML = "".concat(STACK_SUITS[_this.suit], "<br>");
+        _this.container.innerHTML = _this.defaultHTML + "[---]";
         if (_this.suit == 0 || _this.suit == 1) {
-            _this.button.style.color = "red";
+            _this.container.classList.add("red");
         }
-        _this.button.addEventListener("click", function () {
+        else {
+            _this.container.classList.add("black");
+        }
+        _this.container.addEventListener("click", function () {
             selectStack(_this);
         });
         _this.addCard = function addCard(card) {
             this.cards.unshift(card);
-            this.button.innerText = card.display;
+            this.container.innerHTML = this.defaultHTML + card.display;
             card.stack = this;
         };
         _this.removeCard = function removeCard() {
             var card = this.cards.shift();
-            this.button.innerText = this.cards[0].display;
+            this.container.innerHTML = this.defaultHTML + this.cards[0].display;
             return card;
         };
         _this.updateStack = function updateStack() {
+            this.container.innerHTML = this.defaultHTML;
             if (this.cards.length > 0) {
-                this.button.innerText = this.cards[0].display;
+                this.container.innerHTML += this.cards[0].display;
             }
             else {
-                this.button.innerText = "[---]"; // THERE IS NO BUTTON TO HIT ON THIS SUIT STACKS
+                this.container.innerHTML += "[---]"; // THERE IS NO BUTTON TO HIT ON THIS SUIT STACKS
             }
         };
         _this.isValid = function isValid(card) {
@@ -190,10 +192,10 @@ var SuitStack = /** @class */ (function (_super) {
             return card.suit == this.suit && card.number == this.cards.length;
         };
         _this.reset = function reset() {
-            this.button.innerText = "[---]";
+            this.container.innerHTML = this.defaultHTML + "[---]";
             this.cards = [];
         };
-        _this.selectCard = function selectCard(card) {
+        _this.selectCard = function () {
             console.warn("YOU SHOULD NOT SEE THIS");
         };
         return _this;
@@ -204,12 +206,9 @@ var DrawStack = /** @class */ (function (_super) {
     __extends(DrawStack, _super);
     function DrawStack(container) {
         var _this = _super.call(this, container) || this;
-        _this.defaultHTML = "Deck: ";
-        _this.button = document.createElement("button");
-        _this.container.innerHTML = _this.defaultHTML;
-        _this.container.appendChild(_this.button);
-        _this.button.innerText = "[---]";
-        _this.button.addEventListener("click", function () {
+        _this.defaultHTML = "Deck<br>";
+        _this.container.innerHTML = _this.defaultHTML + "[---]";
+        _this.container.addEventListener("click", function () {
             selectStack(_this);
         });
         _this.isValid = function isValid() {
@@ -222,21 +221,27 @@ var DrawStack = /** @class */ (function (_super) {
         };
         _this.removeCard = function removeCard() {
             var card = this.cards.shift(); // MIGHT NOT ALWAYS BE NON-NULL
-            this.button.innerText = this.cards[0].display;
+            this.container.innerHTML = this.cards[0].display;
             return card;
         };
         _this.updateStack = function updateStack() {
             var topCard = this.cards[0];
+            this.container.innerHTML = this.defaultHTML;
             if (topCard != undefined) {
-                this.button.innerText = topCard.display;
+                this.container.innerHTML += topCard.display;
             }
             else {
-                this.button.innerText = "[---]";
+                this.container.innerHTML += "[---]";
             }
-            this.button.style.color = this.cards[0].color;
+            if (this.cards[0].color == "red") {
+                this.container.classList.add("red");
+            }
+            else {
+                this.container.classList.remove("red");
+            }
         };
         _this.reset = function reset() {
-            this.button.innerText = "[---]";
+            this.container.innerHTML = "";
             this.cards = [];
         };
         _this.selectCard = function () {
