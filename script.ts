@@ -75,7 +75,7 @@ class Card {
 
     this.button = document.createElement("button");
     this.button.innerText = this.display;
-    this.button.style.color = this.color;
+    this.button.classList.add(this.color);
 
     this.button.addEventListener("click", () => {
       this.stack.selectCard(this);

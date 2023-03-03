@@ -7,53 +7,93 @@
 
 body {
     background-color: #35654d;
+    height: 100vh;
 }
 
 
 .header {
-    margin: 10px
+    height: 15vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
 }
 
-.header .head {
+.header .spacing .head {
     display: inline;
     border: 3px solid black;
     font-size: 20px;
     padding-top: 3px;
     padding-bottom: 3px;
+    border-radius: 3px;
 }
 
-.header .newGameButton {
+.header .spacing .newGameButton {
     font-size: 25px;
     border-color: red;
 }
 
-.header .suitStack {
-    background-color: white;
-}
-
-.header .red {
+.header .spacing .red {
     color: red;
     border: 2px solid red
 }
 
+.header .spacing .deckContainer {
+    border-color: black;
+}
 
 .selected {
     background-color: grey;
 }
 
-.mainStackContainer {
-    Margin: 20px
+.mainPositioning {
+    height: 50vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px;
+
 }
 
-.mainStackContainer .black {
+.mainPositioning .mainStackContainer {
+    display: grid;
+}
+
+.mainPositioning .mainStackContainer .mainStack {
+    position: absolute;
+    top: 0;
+    transform: translate(-50%, 50%);
+    text-align: center;
+    padding: 20px;
+    border-radius: 10px;
+} 
+
+.mainPositioning .mainStackContainer .mainStack .black {
     color: black;
     border: 2px solid black;
     padding: 2px;
 }
 
-.mainStackContainer .red {
+.mainPositioning .mainStackContainer .mainStack .red {
     color: red;
     border: 2px solid red;
     padding: 2px;
 
+}
+.linkContainer {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+
+.linkContainer .link {
+    position: absolute;
+    bottom: 0;
+    transform: translate(0, 50%);
+    text-align: center;
+}
+
+a {
+    color: #0303fc
 }

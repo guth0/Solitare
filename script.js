@@ -76,7 +76,7 @@ var Card = /** @class */ (function () {
         this.stack = stack;
         this.button = document.createElement("button");
         this.button.innerText = this.display;
-        this.button.style.color = this.color;
+        this.button.classList.add(this.color);
         this.button.addEventListener("click", function () {
             _this.stack.selectCard(_this);
             console.log(_this.display);
