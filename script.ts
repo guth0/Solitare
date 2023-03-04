@@ -21,16 +21,7 @@
 //
 // TODO:
 //   FIX:
-//     MainStack.removeCard()
-//     MainStack.isVaid()
-//   IMPLIMENT:
-//     ____
-// Moves:
-//   [] Remove from Main
-//   [X] Add to Main
-//   [X] Remove from Draw
-//   [?] Remove from Suit
-//   [X] Add to Suit
+//     Main => Suit second time is fucked
 
 // HTML elements
 const newGameButton: HTMLButtonElement =
@@ -79,7 +70,6 @@ class Card {
 
     this.button.addEventListener("click", () => {
       this.stack.selectCard(this);
-      console.log(this.display);
     });
   }
 
@@ -109,16 +99,18 @@ class Stack {
 
 class MainStack extends Stack {
   numHidden: number;
+  emptyButton: HTMLButtonElement = document.createElement("button");
 
   constructor(container: HTMLDivElement, numHidden: number) {
     super(container);
     this.numHidden = numHidden;
 
-    if (this.numHidden != 0) {
-      for (let i = 0; i < numHidden; i++) {
-        this.container.innerText = this.container.innerText + "[---] ";
-      }
-    }
+    this.emptyButton.innerHTML = "[   ]";
+    this.emptyButton.onclick = () => {
+      selectStack(this);
+    };
+    this.emptyButton.classList.add("black");
+
     this.addCard = function addCard(card: Card): void {
       card.position = this.cards.length;
       this.cards.unshift(card);
@@ -127,25 +119,28 @@ class MainStack extends Stack {
 
     this.removeCard = function removeCard(): Card {
       let card: Card = this.cards.shift()!;
-      this.numHidden -= 1;
       return card;
     };
 
     this.updateStack = function updateStack(): void {
       this.container.innerHTML = "";
 
-      for (var i = 0; i < numHidden; i++) {
-        this.container.innerText += "[---] ";
+      if (this.numHidden != 0) {
+        for (var i = 0; i < this.numHidden; i++) {
+          this.container.innerText += "[---] ";
+        }
       }
-
-      for (var i = this.cards.length - numHidden - 1; i >= 0; i--) {
-        let card = this.cards[i];
-        this.container.appendChild(card.button);
+      if (this.cards.length > 0) {
+        for (var i = this.cards.length - this.numHidden - 1; i >= 0; i--) {
+          let card = this.cards[i];
+          this.container.appendChild(card.button);
+        }
+      } else {
+        this.container.appendChild(this.emptyButton);
       }
     };
 
     this.isValid = function isValid(card: Card): boolean {
-      console.log(`Card: ${card}`);
       console.log(
         `Moved Card: ${card.color} != Top Card: ${this.cards[0].color} = ${
           card.color != this.cards[0].color
@@ -185,7 +180,7 @@ class SuitStack extends Stack {
     super(container);
     this.suit = suit;
     this.defaultHTML = `${STACK_SUITS[this.suit]}<br>`;
-    this.container.innerHTML = this.defaultHTML + "[---]";
+    this.container.innerHTML = this.defaultHTML + "[   ]";
 
     if (this.suit == 0 || this.suit == 1) {
       this.container.classList.add("red");
@@ -213,12 +208,11 @@ class SuitStack extends Stack {
       if (this.cards.length > 0) {
         this.container.innerHTML += this.cards[0].display;
       } else {
-        this.container.innerHTML += "[---]"; // THERE IS NO BUTTON TO HIT ON THIS SUIT STACKS
+        this.container.innerHTML += "[   ]";
       }
     };
 
     this.isValid = function isValid(card: Card): boolean {
-      console.log(`Card: ${card}`);
       console.log(
         `card(${card.suit}) == stack(${this.suit}) = ${card.suit == this.suit}`
       );
@@ -232,7 +226,7 @@ class SuitStack extends Stack {
     };
 
     this.reset = function reset(): void {
-      this.container.innerHTML = this.defaultHTML + "[---]";
+      this.container.innerHTML = this.defaultHTML + "[   ]";
       this.cards = [];
     };
     this.selectCard = function () {
@@ -246,7 +240,7 @@ class DrawStack extends Stack {
 
   constructor(container: HTMLDivElement) {
     super(container);
-    this.container.innerHTML = this.defaultHTML + "[---]";
+    this.container.innerHTML = this.defaultHTML + "[   ]";
 
     this.container.addEventListener("click", () => {
       selectStack(this);
@@ -273,7 +267,7 @@ class DrawStack extends Stack {
       if (topCard != undefined) {
         this.container.innerHTML += topCard.display;
       } else {
-        this.container.innerHTML += "[---]";
+        this.container.innerHTML += "[   ]";
       }
       if (this.cards[0].color == "red") {
         this.container.classList.add("red");
@@ -336,6 +330,13 @@ function moveCard(stackTo: Stack, stackFrom: Stack, index: number): void {
       stackTo.addCard(card);
     });
   }
+  if (
+    stackFrom instanceof MainStack &&
+    stackFrom.numHidden != 0 &&
+    stackFrom.cards.length == stackFrom.numHidden
+  ) {
+    stackFrom.numHidden -= 1;
+  }
 }
 
 function selectStack(
@@ -343,9 +344,13 @@ function selectStack(
   position: number = stack.cards.length - 1
 ): void {
   if (selectedStack == undefined) {
-    selectedStack = stack;
-    selectedStack.container.classList.add("selected");
-    cardPosition = position;
+    if (stack.cards.length > 0 || !(stack instanceof MainStack)) {
+      selectedStack = stack;
+      selectedStack.container.classList.add("selected");
+      cardPosition = position;
+    } else {
+      console.warn("CANNOT MOVE CARD FROM EMPTY STACK");
+    }
     return;
   } else if (stack instanceof DrawStack) {
     if (selectedStack instanceof DrawStack) {
@@ -353,6 +358,9 @@ function selectStack(
     } else {
       console.warn("Cannot Move Card to Deck!");
     }
+  } else if (stack.cards.length == 0 && stack instanceof MainStack) {
+    let index = selectedStack.cards.length - cardPosition! - 1;
+    moveCard(stack, selectedStack, index);
   } else if (selectedStack != stack) {
     let index = selectedStack.cards.length - cardPosition! - 1;
     if (
@@ -367,7 +375,6 @@ function selectStack(
         console.warn("Invalid Move: Incorrect Card!");
     } // May present problems
   }
-  console.log("Being undefined!");
   selectedStack.container.classList.remove("selected");
   selectedStack = undefined;
   updateDisplay();
@@ -383,6 +390,9 @@ function reset() {
   if (selectedStack != undefined) {
     selectedStack.container.classList.remove("selected");
     selectedStack = undefined;
+  }
+  for (let i = 0; i < 7; i++) {
+    mains[i].numHidden = i;
   }
 }
 // GAMEPLAY
@@ -408,6 +418,7 @@ for (var i = 0; i < 7; i++) {
 const mains: MainStack[] = temp;
 
 newGameButton!.addEventListener("click", () => {
+  console.log("NEW GAME");
   reset();
   draw.dealCards();
   updateDisplay();
