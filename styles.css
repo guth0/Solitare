@@ -37,12 +37,8 @@ body {
     border: 2px solid red
 }
 
-.header .spacing .deckContainer {
-    border-color: black;
-}
-
 .selected {
-    background-color: grey;
+    background-color: paleturquoise;
 }
 
 .mainPositioning {
@@ -50,33 +46,31 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 20px;
-
 }
 
-.mainPositioning .mainStackContainer {
+/* .mainPositioning .mainStackContainer {
     display: grid;
 }
-
 .mainPositioning .mainStackContainer .mainStack {
     position: absolute;
-    top: 0;
-    transform: translate(-50%, 50%);
     text-align: center;
-    padding: 20px;
+    padding: 1px;
     border-radius: 10px;
-} 
+}  */
 
-.mainPositioning .mainStackContainer .mainStack .black {
-    color: black;
-    border: 2px solid black;
+.mainPositioning .mainStackContainer .mainStack * {
     padding: 2px;
+    margin: 5px
 }
 
-.mainPositioning .mainStackContainer .mainStack .red {
+.mainStackContainer .mainStack .black {
+    color: black;
+    border: 2px solid black;
+}
+
+.mainStackContainer .mainStack .red {
     color: red;
-    border: 2px solid red;
-    padding: 2px;
+    border: 1px solid red;
 
 }
 .linkContainer {

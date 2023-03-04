@@ -93,17 +93,16 @@ class Card {
 }
 
 class Stack {
-  container: HTMLDivElement;
+  container: HTMLElement;
   cards: Card[] = [];
   addCard: Function;
   removeCard: Function;
   updateStack: Function;
   isValid: Function;
   reset: Function;
-  update: Function;
   selectCard: Function;
 
-  constructor(container: HTMLDivElement) {
+  constructor(container: HTMLElement) {
     this.container = container;
   }
 }
@@ -206,7 +205,6 @@ class SuitStack extends Stack {
 
     this.removeCard = function removeCard(): Card {
       let card = this.cards.shift()!;
-      this.container.innerHTML = this.defaultHTML + this.cards[0].display;
       return card;
     };
 
@@ -266,7 +264,6 @@ class DrawStack extends Stack {
 
     this.removeCard = function removeCard(): Card {
       let card = this.cards.shift()!; // MIGHT NOT ALWAYS BE NON-NULL
-      this.container.innerHTML = this.cards[0].display;
       return card;
     };
 
@@ -331,10 +328,13 @@ function updateDisplay(): void {
 var selectedStack: Stack | undefined = undefined;
 var cardPosition: number | undefined = undefined;
 
-function moveCard(stackTo: Stack, stackFrom: Stack, position: number): void {
-  for (let i = 0; i < stackFrom.cards.length - position; i++) {
-    let card = stackFrom.removeCard();
-    stackTo.addCard(card);
+function moveCard(stackTo: Stack, stackFrom: Stack, index: number): void {
+  let cards: Card[] = [];
+  for (let i = 0; i <= index; i++) {
+    cards.unshift(stackFrom.removeCard());
+    cards.forEach((card) => {
+      stackTo.addCard(card);
+    });
   }
 }
 
@@ -359,7 +359,7 @@ function selectStack(
       selectedStack.cards.length > 0 &&
       stack.isValid(selectedStack.cards[index])
     ) {
-      moveCard(stack, selectedStack, cardPosition!);
+      moveCard(stack, selectedStack, index);
     } else {
       if (selectedStack.cards.length < 0)
         console.warn("Invalid Move: No cards in Stack!");

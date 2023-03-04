@@ -173,7 +173,6 @@ var SuitStack = /** @class */ (function (_super) {
         };
         _this.removeCard = function removeCard() {
             var card = this.cards.shift();
-            this.container.innerHTML = this.defaultHTML + this.cards[0].display;
             return card;
         };
         _this.updateStack = function updateStack() {
@@ -221,7 +220,6 @@ var DrawStack = /** @class */ (function (_super) {
         };
         _this.removeCard = function removeCard() {
             var card = this.cards.shift(); // MIGHT NOT ALWAYS BE NON-NULL
-            this.container.innerHTML = this.cards[0].display;
             return card;
         };
         _this.updateStack = function updateStack() {
@@ -281,10 +279,13 @@ function updateDisplay() {
 // GAMEPLAY
 var selectedStack = undefined;
 var cardPosition = undefined;
-function moveCard(stackTo, stackFrom, position) {
-    for (var i_3 = 0; i_3 < stackFrom.cards.length - position; i_3++) {
-        var card = stackFrom.removeCard();
-        stackTo.addCard(card);
+function moveCard(stackTo, stackFrom, index) {
+    var cards = [];
+    for (var i_3 = 0; i_3 <= index; i_3++) {
+        cards.unshift(stackFrom.removeCard());
+        cards.forEach(function (card) {
+            stackTo.addCard(card);
+        });
     }
 }
 function selectStack(stack, position) {
@@ -307,7 +308,7 @@ function selectStack(stack, position) {
         var index = selectedStack.cards.length - cardPosition - 1;
         if (selectedStack.cards.length > 0 &&
             stack.isValid(selectedStack.cards[index])) {
-            moveCard(stack, selectedStack, cardPosition);
+            moveCard(stack, selectedStack, index);
         }
         else {
             if (selectedStack.cards.length < 0)
