@@ -21,8 +21,6 @@
 //
 // TODO:
 //   FIX:
-//     Moving mulitple cards still fucked
-//     Main => Suit every other time (not aces [maybe])
 //     Moving same stack to an empty stack for the second time leaves all the cards except for first
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -44,6 +42,8 @@ var newGameButton = document.querySelector("[data-new-game]");
 var mainStacks = document.querySelectorAll("[data-main-stack]");
 var suitStacks = document.querySelectorAll("[data-suit-stack]");
 var deckStack = document.querySelector("[data-deck]");
+var newFromWin = document.querySelector("[data-new-from-win]");
+var winScreen = document.querySelector("[data-win-screen]");
 // HTML elements
 // DISPLAY
 var SUITS = ["H", "D", "S", "C"];
@@ -106,11 +106,9 @@ var MainStack = /** @class */ (function (_super) {
             card.position = this.cards.length;
             this.cards.unshift(card);
             card.stack = this;
-            console.log("added: ".concat(card.display));
         };
         _this.removeCard = function removeCard() {
             var card = this.cards.shift();
-            console.log("Removing: ".concat(card.display, " from ").concat(card.stack));
             return card;
         };
         _this.updateStack = function updateStack() {
@@ -143,9 +141,6 @@ var MainStack = /** @class */ (function (_super) {
         };
         return _this;
     }
-    MainStack.prototype.revealCard = function () {
-        console.log("FUNCTION NOT IMPLEMENTED!");
-    };
     return MainStack;
 }(Stack));
 var SuitStack = /** @class */ (function (_super) {
@@ -168,11 +163,9 @@ var SuitStack = /** @class */ (function (_super) {
             this.cards.unshift(card);
             this.container.innerHTML = this.defaultHTML + card.display;
             card.stack = this;
-            console.log("Added: ".concat(card.display));
         };
         _this.removeCard = function removeCard() {
             var card = this.cards.shift();
-            console.log("Removing: ".concat(card.display));
             return card;
         };
         _this.updateStack = function updateStack() {
@@ -217,14 +210,12 @@ var DrawStack = /** @class */ (function (_super) {
         };
         _this.removeCard = function removeCard() {
             var card = this.cards.shift();
-            console.log("Removing: ".concat(card.display));
             return card;
         };
         _this.updateStack = function updateStack() {
-            var topCard = this.cards[0];
             this.container.innerHTML = this.defaultHTML;
-            if (topCard != undefined) {
-                this.container.innerHTML += topCard.display;
+            if (this.cards.length > 0) {
+                this.container.innerHTML += this.cards[0].display;
             }
             else {
                 this.container.innerHTML += "[   ]";
@@ -273,12 +264,17 @@ function updateDisplay() {
     });
     draw.updateStack();
 }
+function showWinScreen() {
+    winScreen.style.display = "flex";
+}
+function hideWinScreen() {
+    winScreen.style.display = "none";
+}
 // DISPLAY
 // GAMEPLAY
 var selectedStack = undefined;
 var cardPosition = undefined;
 function moveCard(stackTo, stackFrom, index) {
-    console.log("MOVING: i(".concat(index, ")"));
     var cards = [];
     for (var i_2 = 0; i_2 <= index; i_2++) {
         cards.unshift(stackFrom.removeCard());
@@ -295,7 +291,7 @@ function moveCard(stackTo, stackFrom, index) {
 function selectStack(stack, position) {
     if (position === void 0) { position = stack.cards.length - 1; }
     if (selectedStack == undefined) {
-        if (stack.cards.length > 0 || !(stack instanceof MainStack)) {
+        if (stack.cards.length > 0) {
             selectedStack = stack;
             selectedStack.container.classList.add("selected");
             cardPosition = position;
@@ -307,7 +303,7 @@ function selectStack(stack, position) {
     }
     else if (stack instanceof DrawStack) {
         if (selectedStack instanceof DrawStack) {
-            draw.cycleDeck(); // Remove ! and fix for when draw stack is empty
+            draw.cycleDeck();
         }
         else {
             console.warn("Cannot Move Card to Deck!");
@@ -328,11 +324,14 @@ function selectStack(stack, position) {
                 console.warn("Invalid Move: No cards in Stack!");
             if (stack.isValid(selectedStack.cards[index]))
                 console.warn("Invalid Move: Incorrect Card!");
-        } // May present problems
+        }
     }
     selectedStack.container.classList.remove("selected");
     selectedStack = undefined;
     updateDisplay();
+    if (isWon(suits.map(function (stack) { return stack[0]; }))) {
+        showWinScreen();
+    }
 }
 function reset() {
     draw.reset();
@@ -349,6 +348,19 @@ function reset() {
     for (var i_3 = 0; i_3 < 7; i_3++) {
         mains[i_3].numHidden = i_3;
     }
+}
+function isWon(topSuits) {
+    if (topSuits.every(function (card) { return card != undefined; })) {
+        var nums = topSuits.map(function (card) { return card.number; });
+        if (nums.every(function (num) { return num == 12; }))
+            return true;
+    }
+    return false;
+}
+function newGame() {
+    reset();
+    draw.dealCards();
+    updateDisplay();
 }
 // GAMEPLAY
 // Variables
@@ -367,9 +379,10 @@ for (var i = 0; i < 7; i++) {
 }
 var mains = temp;
 newGameButton.addEventListener("click", function () {
-    console.log("NEW GAME");
-    reset();
-    draw.dealCards();
-    updateDisplay();
+    newGame();
 });
+newFromWin.onclick = function () {
+    hideWinScreen();
+    newGame();
+};
 // Variables
