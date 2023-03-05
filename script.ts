@@ -21,7 +21,9 @@
 //
 // TODO:
 //   FIX:
-//     Main => Suit second time is fucked
+//     Moving mulitple cards still fucked
+//     Main => Suit every other time (not aces [maybe])
+//     Moving same stack to an empty stack for the second time leaves all the cards except for first
 
 // HTML elements
 const newGameButton: HTMLButtonElement =
@@ -115,10 +117,12 @@ class MainStack extends Stack {
       card.position = this.cards.length;
       this.cards.unshift(card);
       card.stack = this;
+      console.log(`added: ${card.display}`);
     };
 
     this.removeCard = function removeCard(): Card {
       let card: Card = this.cards.shift()!;
+      console.log(`Removing: ${card.display} from ${card.stack}`);
       return card;
     };
 
@@ -141,17 +145,6 @@ class MainStack extends Stack {
     };
 
     this.isValid = function isValid(card: Card): boolean {
-      console.log(
-        `Moved Card: ${card.color} != Top Card: ${this.cards[0].color} = ${
-          card.color != this.cards[0].color
-        }`
-      );
-      console.log(
-        `Moved Card: ${card.number} == Top Card: ${
-          this.cards[0].number
-        } - 1 = ${card.number == this.cards[0].number - 1}`
-      );
-
       return (
         card.color != this.cards[0].color &&
         card.number == this.cards[0].number - 1
@@ -196,10 +189,12 @@ class SuitStack extends Stack {
       this.cards.unshift(card);
       this.container.innerHTML = this.defaultHTML + card.display;
       card.stack = this;
+      console.log(`Added: ${card.display}`);
     };
 
     this.removeCard = function removeCard(): Card {
       let card = this.cards.shift()!;
+      console.log(`Removing: ${card.display}`);
       return card;
     };
 
@@ -213,15 +208,6 @@ class SuitStack extends Stack {
     };
 
     this.isValid = function isValid(card: Card): boolean {
-      console.log(
-        `card(${card.suit}) == stack(${this.suit}) = ${card.suit == this.suit}`
-      );
-      console.log(
-        `card(${card.number}) == stack(${this.cards.length}) = ${
-          card.number == this.cards.length
-        }`
-      );
-
       return card.suit == this.suit && card.number == this.cards.length;
     };
 
@@ -257,7 +243,8 @@ class DrawStack extends Stack {
     };
 
     this.removeCard = function removeCard(): Card {
-      let card = this.cards.shift()!; // MIGHT NOT ALWAYS BE NON-NULL
+      let card = this.cards.shift()!;
+      console.log(`Removing: ${card.display}`);
       return card;
     };
 
@@ -323,13 +310,14 @@ var selectedStack: Stack | undefined = undefined;
 var cardPosition: number | undefined = undefined;
 
 function moveCard(stackTo: Stack, stackFrom: Stack, index: number): void {
+  console.log(`MOVING: i(${index})`);
   let cards: Card[] = [];
   for (let i = 0; i <= index; i++) {
     cards.unshift(stackFrom.removeCard());
-    cards.forEach((card) => {
-      stackTo.addCard(card);
-    });
   }
+  cards.forEach((card) => {
+    stackTo.addCard(card);
+  });
   if (
     stackFrom instanceof MainStack &&
     stackFrom.numHidden != 0 &&

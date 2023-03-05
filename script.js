@@ -21,16 +21,9 @@
 //
 // TODO:
 //   FIX:
-//     MainStack.removeCard()
-//     MainStack.isVaid()
-//   IMPLIMENT:
-//     ____
-// Moves:
-//   [] Remove from Main
-//   [X] Add to Main
-//   [X] Remove from Draw
-//   [?] Remove from Suit
-//   [X] Add to Suit
+//     Moving mulitple cards still fucked
+//     Main => Suit every other time (not aces [maybe])
+//     Moving same stack to an empty stack for the second time leaves all the cards except for first
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -113,9 +106,11 @@ var MainStack = /** @class */ (function (_super) {
             card.position = this.cards.length;
             this.cards.unshift(card);
             card.stack = this;
+            console.log("added: ".concat(card.display));
         };
         _this.removeCard = function removeCard() {
             var card = this.cards.shift();
+            console.log("Removing: ".concat(card.display, " from ").concat(card.stack));
             return card;
         };
         _this.updateStack = function updateStack() {
@@ -136,8 +131,6 @@ var MainStack = /** @class */ (function (_super) {
             }
         };
         _this.isValid = function isValid(card) {
-            console.log("Moved Card: ".concat(card.color, " != Top Card: ").concat(this.cards[0].color, " = ").concat(card.color != this.cards[0].color));
-            console.log("Moved Card: ".concat(card.number, " == Top Card: ").concat(this.cards[0].number, " - 1 = ").concat(card.number == this.cards[0].number - 1));
             return (card.color != this.cards[0].color &&
                 card.number == this.cards[0].number - 1);
         };
@@ -175,9 +168,11 @@ var SuitStack = /** @class */ (function (_super) {
             this.cards.unshift(card);
             this.container.innerHTML = this.defaultHTML + card.display;
             card.stack = this;
+            console.log("Added: ".concat(card.display));
         };
         _this.removeCard = function removeCard() {
             var card = this.cards.shift();
+            console.log("Removing: ".concat(card.display));
             return card;
         };
         _this.updateStack = function updateStack() {
@@ -190,8 +185,6 @@ var SuitStack = /** @class */ (function (_super) {
             }
         };
         _this.isValid = function isValid(card) {
-            console.log("card(".concat(card.suit, ") == stack(").concat(this.suit, ") = ").concat(card.suit == this.suit));
-            console.log("card(".concat(card.number, ") == stack(").concat(this.cards.length, ") = ").concat(card.number == this.cards.length));
             return card.suit == this.suit && card.number == this.cards.length;
         };
         _this.reset = function reset() {
@@ -223,7 +216,8 @@ var DrawStack = /** @class */ (function (_super) {
             return false;
         };
         _this.removeCard = function removeCard() {
-            var card = this.cards.shift(); // MIGHT NOT ALWAYS BE NON-NULL
+            var card = this.cards.shift();
+            console.log("Removing: ".concat(card.display));
             return card;
         };
         _this.updateStack = function updateStack() {
@@ -284,13 +278,14 @@ function updateDisplay() {
 var selectedStack = undefined;
 var cardPosition = undefined;
 function moveCard(stackTo, stackFrom, index) {
+    console.log("MOVING: i(".concat(index, ")"));
     var cards = [];
     for (var i_2 = 0; i_2 <= index; i_2++) {
         cards.unshift(stackFrom.removeCard());
-        cards.forEach(function (card) {
-            stackTo.addCard(card);
-        });
     }
+    cards.forEach(function (card) {
+        stackTo.addCard(card);
+    });
     if (stackFrom instanceof MainStack &&
         stackFrom.numHidden != 0 &&
         stackFrom.cards.length == stackFrom.numHidden) {
