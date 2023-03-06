@@ -218,6 +218,7 @@ class SuitStack extends Stack {
 
 class DrawStack extends Stack {
   defaultHTML: string = "Deck<br>";
+  currentColor: "red" | "black";
 
   constructor(container: HTMLDivElement) {
     super(container);
@@ -248,11 +249,10 @@ class DrawStack extends Stack {
         this.container.innerHTML += this.cards[0].display;
       } else {
         this.container.innerHTML += "[   ]";
-      }
-      if (this.cards[0].color == "red") {
-        this.container.classList.add("red");
-      } else {
-        this.container.classList.remove("red");
+        if (this.currentColor == "red") {
+          this.container.classList.remove("red");
+          this.currentColor = "black";
+        }
       }
     };
 
@@ -366,9 +366,7 @@ function selectStack(
   selectedStack.container.classList.remove("selected");
   selectedStack = undefined;
   updateDisplay();
-  if (isWon(suits.map((stack) => stack[0]))) {
-    showWinScreen();
-  }
+  if (isWon()) showWinScreen();
 }
 function reset() {
   draw.reset();
@@ -387,7 +385,8 @@ function reset() {
   }
 }
 
-function isWon(topSuits: Card[]): boolean {
+function isWon(): boolean {
+  let topSuits: Card[] = suits.map((suitstack) => suitstack.cards[0]);
   if (topSuits.every((card) => card != undefined)) {
     let nums = topSuits.map((card) => card.number);
     if (nums.every((num) => num == 12)) return true;
@@ -431,3 +430,22 @@ newFromWin.onclick = () => {
   newGame();
 };
 // Variables
+
+// Dev Tools
+function setWin(): void {
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 13; j++) {
+      let stack = suits[i];
+      stack.cards.unshift(new Card(j + i * 13, stack));
+    }
+  }
+  updateDisplay();
+}
+
+function setAmostWin(): void {
+  setWin();
+  let card = suits[0].removeCard();
+  mains[0].addCard(card);
+  updateDisplay();
+}
+// Dev Tools

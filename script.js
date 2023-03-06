@@ -37,6 +37,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var _Ballsack_instances, _Ballsack_thingy_get;
 // HTML elements
 var newGameButton = document.querySelector("[data-new-game]");
 var mainStacks = document.querySelectorAll("[data-main-stack]");
@@ -219,12 +220,10 @@ var DrawStack = /** @class */ (function (_super) {
             }
             else {
                 this.container.innerHTML += "[   ]";
-            }
-            if (this.cards[0].color == "red") {
-                this.container.classList.add("red");
-            }
-            else {
-                this.container.classList.remove("red");
+                if (this.currentColor == "red") {
+                    this.container.classList.remove("red");
+                    this.currentColor = "black";
+                }
             }
         };
         _this.reset = function reset() {
@@ -329,9 +328,8 @@ function selectStack(stack, position) {
     selectedStack.container.classList.remove("selected");
     selectedStack = undefined;
     updateDisplay();
-    if (isWon(suits.map(function (stack) { return stack[0]; }))) {
+    if (isWon())
         showWinScreen();
-    }
 }
 function reset() {
     draw.reset();
@@ -349,7 +347,8 @@ function reset() {
         mains[i_3].numHidden = i_3;
     }
 }
-function isWon(topSuits) {
+function isWon() {
+    var topSuits = suits.map(function (suitstack) { return suitstack.cards[0]; });
     if (topSuits.every(function (card) { return card != undefined; })) {
         var nums = topSuits.map(function (card) { return card.number; });
         if (nums.every(function (num) { return num == 12; }))
@@ -386,3 +385,33 @@ newFromWin.onclick = function () {
     newGame();
 };
 // Variables
+// Dev Tools
+function setWin() {
+    for (var i_4 = 0; i_4 < 4; i_4++) {
+        for (var j = 0; j < 13; j++) {
+            var stack = suits[i_4];
+            stack.cards.unshift(new Card(j + i_4 * 13, stack));
+        }
+    }
+    updateDisplay();
+}
+function setAmostWin() {
+    setWin();
+    var card = suits[0].removeCard();
+    mains[0].addCard(card);
+    updateDisplay();
+}
+// Dev Tools
+//testing
+var Ballsack = /** @class */ (function () {
+    function Ballsack(thingy) {
+        _Ballsack_instances.add(this);
+        this.thing = thingy;
+    }
+    return Ballsack;
+}());
+_Ballsack_instances = new WeakSet(), _Ballsack_thingy_get = function _Ballsack_thingy_get() {
+    return this.thing;
+};
+var simple = new Ballsack(12);
+//testing

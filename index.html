@@ -1,53 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Solitare</title>
-    <link rel="icon" type="image/x-icon" href="icon.png">
-    <link href="styles.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="icon.png" />
+    <link href="styles.css" rel="stylesheet" />
     <script src="script.js" defer></script>
-</head>
-<body>
+  </head>
+  <body>
     <div data-win-screen class="overlay">
-        <h1>You Won!</h1>
-        <button data-new-from-win>New GAME</button>
+      <h1>You Won!</h1>
+      <button data-new-from-win>New GAME</button>
     </div>
     <div class="content">
-        <div class="header">
-            <div class="spacing">
-                <button data-new-game class="head newGameButton">NEW<br>GAME</button>
-                <button class="deckContaner head" data-deck></button>
-                <button data-suit-stack class="Red head suitStack"></button>
-                <button data-suit-stack class="Red head suitStack"></button>
-                <button data-suit-stack class="Black head suitStack"></button>
-                <button data-suit-stack class="Black head suitStack"></button>
-            </div>
+      <div class="header">
+        <div class="spacing">
+          <button data-new-game class="head newGameButton">
+            NEW<br />GAME
+          </button>
+          <button class="deckContaner head black" data-deck></button>
+          <button data-suit-stack class="red head suitStack"></button>
+          <button data-suit-stack class="red head suitStack"></button>
+          <button data-suit-stack class="black head suitStack"></button>
+          <button data-suit-stack class="black head suitStack"></button>
         </div>
-        <div class="mainPositioning">
-            <div class="mainStackContainer">
-                <div data-main-stack class="mainStack">
-                </div>
-                <div data-main-stack class="mainStack">
-                </div>
-                <div data-main-stack class="mainStack">
-                </div>
-                <div data-main-stack class="mainStack">
-                </div>
-                <div data-main-stack class="mainStack">
-                </div>
-                <div data-main-stack class="mainStack">
-                </div>
-                <div data-main-stack class="mainStack">
-                </div>
-            </div>  
+      </div>
+      <div class="mainPositioning">
+        <div class="mainStackContainer">
+          <div data-main-stack class="mainStack"></div>
+          <div data-main-stack class="mainStack"></div>
+          <div data-main-stack class="mainStack"></div>
+          <div data-main-stack class="mainStack"></div>
+          <div data-main-stack class="mainStack"></div>
+          <div data-main-stack class="mainStack"></div>
+          <div data-main-stack class="mainStack"></div>
         </div>
+      </div>
     </div>
     <div class="linkContainer">
-        <h4 class="link">
-        Solitare by <a href="https://github.com/guth0" target="_blank">Lucas Gutheim</a>
-        </h4>
+      <h4 class="link">
+        Solitare by
+        <a href="https://github.com/guth0" target="_blank">Lucas Gutheim</a>
+      </h4>
     </div>
-</body>
+  </body>
 </html>
