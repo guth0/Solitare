@@ -1,27 +1,7 @@
-// Stacks:
-//   4 suit stacks
-//   7 main stacks
-//     accending number of cards (1-7)
-//     only top card is revealed
-//   Draw piles
-//     one for deck (Top shown)
-//       starts with all other cards
-// Moving cards:
-//   Can move a card from deck to bottom of deack
-//     Can move top of deck to main stacks or suit stacks
-//       Card below becomes visible
-//   Can move card from top of main stack to other top of main stack
-//     Only can place if card is one higher/lower than the one below
-//     Only can place if card is other color than the one below
-//   Suit stacks MUST start with ACE and continue in sequential order
-//     Can draw from top of Suit stack (RESEARCH MORE)
 // UI:
 //   Timer (Update after every move until create UI)
 //   Move count
-//
-// TODO:
-//   FIX:
-//     Moving same stack to an empty stack for the second time leaves all the cards except for first
+//   Fix the main stacks positioning
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -37,7 +17,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var _Ballsack_instances, _Ballsack_thingy_get;
 // HTML elements
 var newGameButton = document.querySelector("[data-new-game]");
 var mainStacks = document.querySelectorAll("[data-main-stack]");
@@ -66,7 +45,7 @@ var Card = /** @class */ (function () {
         }
         else {
             this.color = "black";
-        } // 0 = red, 1 = black
+        }
         this.stack = stack;
         this.button = document.createElement("button");
         this.button.innerText = this.display;
@@ -197,6 +176,7 @@ var DrawStack = /** @class */ (function (_super) {
     function DrawStack(container) {
         var _this = _super.call(this, container) || this;
         _this.defaultHTML = "Deck<br>";
+        _this.currentColor = "black";
         _this.container.innerHTML = _this.defaultHTML + "[   ]";
         _this.container.addEventListener("click", function () {
             selectStack(_this);
@@ -216,7 +196,9 @@ var DrawStack = /** @class */ (function (_super) {
         _this.updateStack = function updateStack() {
             this.container.innerHTML = this.defaultHTML;
             if (this.cards.length > 0) {
-                this.container.innerHTML += this.cards[0].display;
+                var topCard = this.cards[0];
+                this.container.innerHTML += topCard.display;
+                this.updateColor(topCard.color);
             }
             else {
                 this.container.innerHTML += "[   ]";
@@ -235,6 +217,18 @@ var DrawStack = /** @class */ (function (_super) {
         };
         return _this;
     }
+    DrawStack.prototype.updateColor = function (Cardcolor) {
+        if (this.currentColor != Cardcolor) {
+            if (this.currentColor == "black") {
+                this.container.classList.add("red");
+                this.currentColor = "red";
+            }
+            else {
+                this.container.classList.remove("red");
+                this.currentColor = "black";
+            }
+        }
+    };
     DrawStack.prototype.cycleDeck = function () {
         this.cards.push(this.cards.shift());
         this.updateStack();
@@ -402,16 +396,3 @@ function setAmostWin() {
     updateDisplay();
 }
 // Dev Tools
-//testing
-var Ballsack = /** @class */ (function () {
-    function Ballsack(thingy) {
-        _Ballsack_instances.add(this);
-        this.thing = thingy;
-    }
-    return Ballsack;
-}());
-_Ballsack_instances = new WeakSet(), _Ballsack_thingy_get = function _Ballsack_thingy_get() {
-    return this.thing;
-};
-var simple = new Ballsack(12);
-//testing

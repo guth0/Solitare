@@ -5,10 +5,6 @@
   font-weight: normal;
 }
 
-button:hover {
-  background-color: paleturquoise;
-}
-
 .overlay {
   position: fixed;
   top: 0;
@@ -35,10 +31,6 @@ button:hover {
   font-size: 20px;
   padding: 7px 15px;
   margin-top: 20px;
-}
-
-.overlay button:hover {
-  background-color: paleturquoise;
 }
 
 body {
@@ -74,6 +66,10 @@ body {
 
 .selected {
   background-color: paleturquoise;
+}
+
+button:hover {
+  background-color: turquoise;
 }
 
 .mainPositioning {
