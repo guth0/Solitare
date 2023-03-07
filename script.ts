@@ -111,14 +111,17 @@ class MainStack extends Stack {
 
       if (this.numHidden != 0) {
         for (var i = 0; i < this.numHidden; i++) {
-          this.container.innerHTML += "[---] <br>";
+          this.container.innerText += "[---]";
+          let lineBreak = document.createElement("br");
+          this.container.appendChild(lineBreak);
         }
       }
       if (this.cards.length > 0) {
         for (var i = this.cards.length - this.numHidden - 1; i >= 0; i--) {
           let card = this.cards[i];
+          let lineBreak = document.createElement("br");
           this.container.appendChild(card.button);
-          this.container.innerHTML += "<br>";
+          this.container.appendChild(lineBreak);
         }
       } else {
         this.container.appendChild(this.emptyButton);

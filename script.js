@@ -95,14 +95,17 @@ var MainStack = /** @class */ (function (_super) {
             this.container.innerHTML = "";
             if (this.numHidden != 0) {
                 for (var i = 0; i < this.numHidden; i++) {
-                    this.container.innerHTML += "[---] <br>";
+                    this.container.innerText += "[---]";
+                    var lineBreak = document.createElement("br");
+                    this.container.appendChild(lineBreak);
                 }
             }
             if (this.cards.length > 0) {
                 for (var i = this.cards.length - this.numHidden - 1; i >= 0; i--) {
                     var card = this.cards[i];
+                    var lineBreak = document.createElement("br");
                     this.container.appendChild(card.button);
-                    this.container.innerHTML += "<br>";
+                    this.container.appendChild(lineBreak);
                 }
             }
             else {
