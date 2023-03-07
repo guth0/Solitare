@@ -36,6 +36,7 @@
 body {
   background-color: #35654d;
   height: 100%;
+  overflow: hidden;
 }
 
 .header {
@@ -108,7 +109,7 @@ button:hover {
 }
 
 .linkContainer {
-  height: 100vh;
+  height: 33vh;
   display: flex;
   justify-content: center;
   align-items: flex-end;
