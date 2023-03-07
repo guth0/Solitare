@@ -79,6 +79,17 @@ button:hover {
   align-items: center;
 }
 
+.mainStackContainer {
+  text-align: top;
+}
+
+.mainStackContainer .mainStack {
+  display: inline-block;
+  vertical-align: top;
+  margin: 5px;
+  text-align: center;
+}
+
 .mainPositioning .mainStackContainer .mainStack,
 .mainPositioning .mainStackContainer .mainStack * {
   padding: 2px;

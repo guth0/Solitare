@@ -111,13 +111,14 @@ class MainStack extends Stack {
 
       if (this.numHidden != 0) {
         for (var i = 0; i < this.numHidden; i++) {
-          this.container.innerText += "[---] ";
+          this.container.innerHTML += "[---] <br>";
         }
       }
       if (this.cards.length > 0) {
         for (var i = this.cards.length - this.numHidden - 1; i >= 0; i--) {
           let card = this.cards[i];
           this.container.appendChild(card.button);
+          this.container.innerHTML += "<br>";
         }
       } else {
         this.container.appendChild(this.emptyButton);
@@ -239,7 +240,7 @@ class DrawStack extends Stack {
     };
 
     this.reset = function reset(): void {
-      this.container.innerHTML = "";
+      this.container.innerHTML = this.defaultHTML + "[   ]";
       this.cards = [];
     };
 
@@ -427,6 +428,7 @@ newFromWin.onclick = () => {
 
 // Dev Tools
 function setWin(): void {
+  reset();
   for (let i = 0; i < 4; i++) {
     for (let j = 0; j < 13; j++) {
       let stack = suits[i];

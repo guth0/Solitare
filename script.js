@@ -95,13 +95,14 @@ var MainStack = /** @class */ (function (_super) {
             this.container.innerHTML = "";
             if (this.numHidden != 0) {
                 for (var i = 0; i < this.numHidden; i++) {
-                    this.container.innerText += "[---] ";
+                    this.container.innerHTML += "[---] <br>";
                 }
             }
             if (this.cards.length > 0) {
                 for (var i = this.cards.length - this.numHidden - 1; i >= 0; i--) {
                     var card = this.cards[i];
                     this.container.appendChild(card.button);
+                    this.container.innerHTML += "<br>";
                 }
             }
             else {
@@ -209,7 +210,7 @@ var DrawStack = /** @class */ (function (_super) {
             }
         };
         _this.reset = function reset() {
-            this.container.innerHTML = "";
+            this.container.innerHTML = this.defaultHTML + "[   ]";
             this.cards = [];
         };
         _this.selectCard = function () {
@@ -381,6 +382,7 @@ newFromWin.onclick = function () {
 // Variables
 // Dev Tools
 function setWin() {
+    reset();
     for (var i_4 = 0; i_4 < 4; i_4++) {
         for (var j = 0; j < 13; j++) {
             var stack = suits[i_4];
