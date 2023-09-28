@@ -22,6 +22,7 @@ const SUITS = ["H", "D", "S", "C"];
 const STACK_SUITS = ["HEARTS", "DIAMONDS", "SPADES", "CLUBS"];
 const CARDS = {
   0: "A",
+  9: "T",
   10: "J",
   11: "Q",
   12: "K",
@@ -138,6 +139,7 @@ class MainStack extends Stack {
     this.reset = function reset(): void {
       this.cards = [];
       this.container.innerHTML = "";
+      this.numHidden = 0;
     };
 
     this.selectCard = function selectCard(card: Card): void {
@@ -378,9 +380,6 @@ function reset() {
     selectedStack.container.classList.remove("selected");
     selectedStack = undefined;
   }
-  for (let i = 0; i < 7; i++) {
-    mains[i].numHidden = i;
-  }
 }
 
 function isWon(): boolean {
@@ -392,8 +391,22 @@ function isWon(): boolean {
   return false;
 }
 
+function areAllDiscovered(): boolean {
+  mains.forEach((stack) => {
+    if (stack.numHidden != 0) return false;
+  });
+  return true;
+}
+
+function setNumHidden(): void {
+  for (let i = 0; i < 7; i++) {
+    mains[i].numHidden = i;
+  }
+}
+
 function newGame(): void {
   reset();
+  setNumHidden();
   draw.dealCards();
   updateDisplay();
 }
@@ -445,6 +458,37 @@ function setAmostWin(): void {
   setWin();
   let card = suits[0].removeCard();
   mains[0].addCard(card);
+  updateDisplay();
+}
+
+function setFullMains(): void {
+  reset();
+  let boolean = false;
+  for (let i = 12; i >= 0; i--) {
+    for (let j = 0; j < 4; j++) {
+      let k: number;
+      if (boolean) {
+        k = j;
+      } else {
+        k = 3 - j;
+      }
+      mains[j].addCard(new Card(i + k * 13, draw));
+    }
+    boolean = !boolean;
+  }
+  updateDisplay();
+}
+
+function setAlmostAllDiscovered(): void {
+  setFullMains();
+
+  mains[6].addCard(new Card(0, mains[6]));
+  mains[6].addCard(new Card(40, mains[6]));
+
+  mains[3].removeCard();
+  mains[3].removeCard();
+
+  mains[6].numHidden = 1;
   updateDisplay();
 }
 // Dev Tools

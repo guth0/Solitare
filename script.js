@@ -30,6 +30,7 @@ var SUITS = ["H", "D", "S", "C"];
 var STACK_SUITS = ["HEARTS", "DIAMONDS", "SPADES", "CLUBS"];
 var CARDS = {
     0: "A",
+    9: "T",
     10: "J",
     11: "Q",
     12: "K"
@@ -119,6 +120,7 @@ var MainStack = /** @class */ (function (_super) {
         _this.reset = function reset() {
             this.cards = [];
             this.container.innerHTML = "";
+            this.numHidden = 0;
         };
         _this.selectCard = function selectCard(card) {
             selectStack(this, card.position);
@@ -341,9 +343,6 @@ function reset() {
         selectedStack.container.classList.remove("selected");
         selectedStack = undefined;
     }
-    for (var i_3 = 0; i_3 < 7; i_3++) {
-        mains[i_3].numHidden = i_3;
-    }
 }
 function isWon() {
     var topSuits = suits.map(function (suitstack) { return suitstack.cards[0]; });
@@ -354,8 +353,21 @@ function isWon() {
     }
     return false;
 }
+function areAllDiscovered() {
+    mains.forEach(function (stack) {
+        if (stack.numHidden != 0)
+            return false;
+    });
+    return true;
+}
+function setNumHidden() {
+    for (var i_3 = 0; i_3 < 7; i_3++) {
+        mains[i_3].numHidden = i_3;
+    }
+}
 function newGame() {
     reset();
+    setNumHidden();
     draw.dealCards();
     updateDisplay();
 }
@@ -398,6 +410,33 @@ function setAmostWin() {
     setWin();
     var card = suits[0].removeCard();
     mains[0].addCard(card);
+    updateDisplay();
+}
+function setFullMains() {
+    reset();
+    var boolean = false;
+    for (var i_5 = 12; i_5 >= 0; i_5--) {
+        for (var j = 0; j < 4; j++) {
+            var k = void 0;
+            if (boolean) {
+                k = j;
+            }
+            else {
+                k = 3 - j;
+            }
+            mains[j].addCard(new Card(i_5 + k * 13, draw));
+        }
+        boolean = !boolean;
+    }
+    updateDisplay();
+}
+function setAlmostAllDiscovered() {
+    setFullMains();
+    mains[6].addCard(new Card(0, mains[6]));
+    mains[6].addCard(new Card(40, mains[6]));
+    mains[3].removeCard();
+    mains[3].removeCard();
+    mains[6].numHidden = 1;
     updateDisplay();
 }
 // Dev Tools
